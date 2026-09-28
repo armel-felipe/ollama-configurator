@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
 import type { DiagnosticsSnapshot } from "../../api/client";
+import { applyModelSettings, getModelSettings, saveModelSettings } from "../../api/client";
 import { ErrorState, LoadingState } from "../shared/StatusState";
 import { ModelsList } from "../models/ModelsList";
+import { ModelSettingsPage } from "../models/ModelSettingsPage";
 
 type Props = { loadDiagnostics: () => Promise<DiagnosticsSnapshot> };
 
 export function DiagnosticsPage({ loadDiagnostics }: Props) {
   const [data, setData] = useState<DiagnosticsSnapshot | null>(null);
+  const [selectedModel, setSelectedModel] = useState<string | undefined>();
   const [error, setError] = useState<string | null>(null);
   const load = useCallback(() => {
     setError(null);
@@ -30,7 +33,15 @@ export function DiagnosticsPage({ loadDiagnostics }: Props) {
         <p>{data.hardware.os} · {data.hardware.architecture}</p>
         {memoryBytes ? <p>{Math.round(memoryBytes / 1024 ** 3)} GB de memória</p> : null}
       </section>
-      <ModelsList models={data.models} />
+      <ModelsList models={data.models} selectedModel={selectedModel} onSelect={setSelectedModel} />
+      {selectedModel ? (
+        <ModelSettingsPage
+          modelId={selectedModel}
+          loadSettings={() => getModelSettings(selectedModel)}
+          saveSettings={(options) => saveModelSettings(selectedModel, options)}
+          applySettings={() => applyModelSettings(selectedModel)}
+        />
+      ) : <p>Selecione um modelo para configurar.</p>}
     </main>
   );
 }

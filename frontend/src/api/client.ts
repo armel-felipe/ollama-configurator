@@ -16,3 +16,28 @@ export async function getDiagnostics(): Promise<DiagnosticsSnapshot> {
   if (!response.ok) throw new Error("Não foi possível carregar os diagnósticos");
   return response.json() as Promise<DiagnosticsSnapshot>;
 }
+
+export async function getModelSettings(modelId: string): Promise<{ options: Record<string, number | string> }> {
+  const response = await fetch(`/api/models/${encodeURIComponent(modelId)}/settings`);
+  if (!response.ok) throw new Error("Não foi possível carregar as configurações");
+  return response.json() as Promise<{ options: Record<string, number | string> }>;
+}
+
+export async function saveModelSettings(
+  modelId: string,
+  options: Record<string, number | string>,
+): Promise<unknown> {
+  const response = await fetch(`/api/models/${encodeURIComponent(modelId)}/settings`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(options),
+  });
+  if (!response.ok) throw new Error("Não foi possível salvar as configurações");
+  return response.json();
+}
+
+export async function applyModelSettings(modelId: string): Promise<unknown> {
+  const response = await fetch(`/api/models/${encodeURIComponent(modelId)}/apply`, { method: "POST" });
+  if (!response.ok) throw new Error("Não foi possível aplicar as configurações");
+  return response.json();
+}

@@ -58,6 +58,31 @@ class OllamaClient:
             )
         return normalized
 
+    def generate(
+        self,
+        model: str,
+        prompt: str = "",
+        options: dict[str, Any] | None = None,
+        keep_alive: str | int | None = None,
+    ) -> dict[str, Any]:
+        payload: dict[str, Any] = {
+            "model": model,
+            "prompt": prompt,
+            "stream": False,
+            "options": options or {},
+        }
+        if keep_alive is not None:
+            payload["keep_alive"] = keep_alive
+        try:
+            response = self._client.post("/api/generate", json=payload)
+            response.raise_for_status()
+            data = response.json()
+        except (httpx.HTTPError, ValueError) as error:
+            raise OllamaConnectionError("Ollama could not apply model settings") from error
+        if not isinstance(data, dict):
+            raise OllamaResponseError("Ollama generate response is invalid")
+        return data
+
     def _get_json(self, path: str) -> dict[str, Any]:
         try:
             response = self._client.get(path)

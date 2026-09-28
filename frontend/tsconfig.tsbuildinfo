@@ -1,1 +1,0 @@
-{"root":["./src/app.test.tsx","./src/app.tsx","./src/main.tsx","./src/testsetup.ts","./src/api/client.ts","./src/features/diagnostics/diagnosticspage.tsx","./src/features/diagnostics/diagnostics.test.tsx","./src/features/models/modelslist.tsx","./src/features/shared/statusstate.tsx"],"version":"5.9.3"}

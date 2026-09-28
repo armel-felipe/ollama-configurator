@@ -9,6 +9,7 @@ build/
 *.egg-info/
 node_modules/
 frontend/dist/
+*.tsbuildinfo
 .env
 .DS_Store
 .superpowers/sdd/
