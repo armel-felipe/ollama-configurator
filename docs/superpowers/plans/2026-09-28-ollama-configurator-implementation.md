@@ -61,12 +61,12 @@
 - Produces frontend command `npm run dev` and backend command `uv run uvicorn backend.app:app`.
 - Produces dependency manifests and lockfiles for Python and frontend packages.
 
-- [ ] **Step 1: Write failing backend and frontend smoke tests**
-- [ ] **Step 2: Run the tests and verify they fail because the project is not scaffolded**
-- [ ] **Step 3: Add the manifests, minimal FastAPI app, Vite React shell, and typed health response**
-- [ ] **Step 4: Document runtime prerequisites, dependency ownership, lockfile policy, and setup commands**
-- [ ] **Step 5: Run `uv run pytest` and `npm test -- --run` and verify both pass**
-- [ ] **Step 6: Commit `chore: scaffold local application and dependency manifests`**
+- [x] **Step 1: Write failing backend and frontend smoke tests**
+- [x] **Step 2: Run the tests and verify they fail because the project is not scaffolded**
+- [x] **Step 3: Add the manifests, minimal FastAPI app, Vite React shell, and typed health response**
+- [x] **Step 4: Document runtime prerequisites, dependency ownership, lockfile policy, and setup commands**
+- [x] **Step 5: Run `uv run pytest` and `npm test -- --run` and verify both pass**
+- [x] **Step 6: Commit `chore: scaffold local application and dependency manifests`**
 
 ### Task 2: Shared domain models and configuration semantics
 
@@ -90,12 +90,12 @@
 - `ConfigStore.load() -> PersistedConfig` and `ConfigStore.save(config: PersistedConfig) -> None`.
 - `filter_capabilities(capabilities, context) -> list[Capability]`.
 
-- [ ] **Step 1: Write tests for Default removal, explicit falsy values, atomic saves, missing files, and corrupted files**
-- [ ] **Step 2: Run `uv run pytest tests/unit/test_settings.py tests/unit/test_store.py -v` and verify failure**
-- [ ] **Step 3: Implement typed domain models, platform data paths, JSON persistence, schema versioning, and atomic replacement**
-- [ ] **Step 4: Add capability filtering tests for Apple/Metal, NVIDIA/CUDA/Vulkan, and AMD/ROCm/Vulkan contexts**
-- [ ] **Step 5: Run the focused unit tests and verify pass**
-- [ ] **Step 6: Commit `feat: add configuration domain and persistent store`**
+- [x] **Step 1: Write tests for Default removal, explicit falsy values, atomic saves, missing files, and corrupted files**
+- [x] **Step 2: Run `uv run pytest tests/unit/test_settings.py tests/unit/test_store.py -v` and verify failure**
+- [x] **Step 3: Implement typed domain models, platform data paths, JSON persistence, schema versioning, and atomic replacement**
+- [x] **Step 4: Add capability filtering tests for Apple/Metal, NVIDIA/CUDA/Vulkan, and AMD/ROCm/Vulkan contexts**
+- [x] **Step 5: Run the focused unit tests and verify pass**
+- [x] **Step 6: Commit `feat: add configuration domain and persistent store`**
 
 ### Task 3: Ollama client, discovery, and capabilities
 
@@ -120,13 +120,13 @@
 - `GET /api/models -> ModelsResponse`.
 - `GET /api/capabilities -> CapabilitiesResponse`.
 
-- [ ] **Step 1: Write mocked HTTP tests for successful discovery, timeout, connection refusal, malformed JSON, and empty model lists**
-- [ ] **Step 2: Run the focused tests and verify failure**
-- [ ] **Step 3: Implement the typed HTTP client with explicit timeouts and normalized errors**
-- [ ] **Step 4: Implement discovery and capability calculation without invoking a shell command endpoint**
-- [ ] **Step 5: Add routes and API error responses**
-- [ ] **Step 6: Run unit and integration tests and verify pass**
-- [ ] **Step 7: Commit `feat: add Ollama discovery and capability API`**
+- [x] **Step 1: Write mocked HTTP tests for successful discovery, timeout, connection refusal, malformed JSON, and empty model lists**
+- [x] **Step 2: Run the focused tests and verify failure**
+- [x] **Step 3: Implement the typed HTTP client with explicit timeouts and normalized errors**
+- [x] **Step 4: Implement discovery and capability calculation without invoking a shell command endpoint**
+- [x] **Step 5: Add routes and API error responses**
+- [x] **Step 6: Run unit and integration tests and verify pass**
+- [x] **Step 7: Commit `feat: add Ollama discovery and capability API`**
 
 ### Task 4: Hardware detection and read-only diagnostics UI
 
@@ -151,13 +151,13 @@
 - Frontend `api.getDiagnostics(): Promise<DiagnosticsSnapshot>`.
 - Frontend `api.getModels(): Promise<ModelsResponse>`.
 
-- [ ] **Step 1: Write detector tests using platform fixture providers, never the developer machine as the expected value**
-- [ ] **Step 2: Write frontend tests for loading, healthy, empty, missing-Ollama, and error states**
-- [ ] **Step 3: Run focused tests and verify failure**
-- [ ] **Step 4: Implement conservative hardware detection with unknown values when a signal is unavailable**
-- [ ] **Step 5: Implement diagnostics and the first usable read-only screen with refresh**
-- [ ] **Step 6: Run backend and frontend tests and perform a manual local smoke test**
-- [ ] **Step 7: Commit `feat: add local Ollama and hardware diagnostics screen`**
+- [x] **Step 1: Write detector tests using platform fixture providers, never the developer machine as the expected value**
+- [x] **Step 2: Write frontend tests for loading, healthy, empty, missing-Ollama, and error states**
+- [x] **Step 3: Run focused tests and verify failure**
+- [x] **Step 4: Implement conservative hardware detection with unknown values when a signal is unavailable**
+- [x] **Step 5: Implement diagnostics and the first usable read-only screen with refresh**
+- [x] **Step 6: Run backend and frontend tests and perform a manual local smoke test**
+- [x] **Step 7: Commit `feat: add local Ollama and hardware diagnostics screen`**
 
 ## MVP configuration implementation
 
@@ -183,12 +183,12 @@
 - `DELETE /api/models/{model_id}/settings/{parameter} -> ModelSettingsResponse`.
 - `ModelSettingsService.get(model_id)`, `.update(model_id, patch)`, `.reset_parameter(model_id, parameter)`.
 
-- [ ] **Step 1: Write tests for basic parameters, range validation, unsupported parameters, model IDs containing tags, and Default semantics**
-- [ ] **Step 2: Run focused tests and verify failure**
-- [ ] **Step 3: Implement option schemas, capability-aware validation, persistence, and explicit runtime application**
-- [ ] **Step 4: Implement the model settings UI with Basic/Advanced separation reserved for later expansion**
-- [ ] **Step 5: Run tests and manually verify a setting survives application restart**
-- [ ] **Step 6: Commit `feat: add persistent basic model settings`**
+- [x] **Step 1: Write tests for basic parameters, range validation, unsupported parameters, model IDs containing tags, and Default semantics**
+- [x] **Step 2: Run focused tests and verify failure**
+- [x] **Step 3: Implement option schemas, capability-aware validation, persistence, and explicit runtime application**
+- [x] **Step 4: Implement the model settings UI with Basic/Advanced separation reserved for later expansion**
+- [x] **Step 5: Run tests and manually verify a setting survives application restart**
+- [x] **Step 6: Commit `feat: add persistent basic model settings`**
 
 ### Task 6: Model reset flows and reconciliation
 
@@ -209,12 +209,12 @@
 - `POST /api/models/{model_id}/reset -> ResetResult`.
 - `POST /api/models/{model_id}/settings/{parameter}/reset -> ResetResult`.
 
-- [ ] **Step 1: Write tests for global reset, individual reset, missing models, and proof that model files are not touched**
-- [ ] **Step 2: Run focused tests and verify failure**
-- [ ] **Step 3: Implement reconciliation and reset services using the ConfigStore only**
-- [ ] **Step 4: Add confirmation UI for global reset and clear result/error states**
-- [ ] **Step 5: Run tests and verify no Ollama model deletion API is called**
-- [ ] **Step 6: Commit `feat: add safe model reset and reconciliation`**
+- [x] **Step 1: Write tests for global reset, individual reset, missing models, and proof that model files are not touched**
+- [x] **Step 2: Run focused tests and verify failure**
+- [x] **Step 3: Implement reconciliation and reset services using the ConfigStore only**
+- [x] **Step 4: Add confirmation UI for global reset and clear result/error states**
+- [x] **Step 5: Run tests and verify no Ollama model deletion API is called**
+- [x] **Step 6: Commit `feat: add safe model reset and reconciliation`**
 
 ### Task 7: Effective model runtime profile and thinking controls
 
@@ -308,7 +308,6 @@ an explicit restart action.
 - [ ] **Step 7: Add server UI controls visible before model selection, restart confirmation, pending/applied/error states, and post-restart diagnostics**
 - [ ] **Step 8: Validate KV cache, global context, Flash Attention, persistence across Ollama restart/logout/login/reboot, and model-profile reapplication on macOS**
 - [ ] **Step 9: Commit `feat: add persistent macOS server settings`**
-- [ ] **Step 8: Commit `feat: add persistent macOS server settings`**
 
 ### Task 9: Windows adapter and cross-platform server settings
 
