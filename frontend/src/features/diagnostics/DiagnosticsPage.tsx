@@ -1,9 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
 import type { DiagnosticsSnapshot } from "../../api/client";
-import { applyModelSettings, getModelSettings, saveModelSettings } from "../../api/client";
+import {
+  applyModelSettings,
+  getModelSettings,
+  resetAllModels,
+  resetModel,
+  saveModelSettings,
+} from "../../api/client";
 import { ErrorState, LoadingState } from "../shared/StatusState";
 import { ModelsList } from "../models/ModelsList";
 import { ModelSettingsPage } from "../models/ModelSettingsPage";
+import { ResetControls } from "../settings/ResetControls";
 
 type Props = { loadDiagnostics: () => Promise<DiagnosticsSnapshot> };
 
@@ -42,6 +49,11 @@ export function DiagnosticsPage({ loadDiagnostics }: Props) {
           applySettings={() => applyModelSettings(selectedModel)}
         />
       ) : <p>Selecione um modelo para configurar.</p>}
+      <ResetControls
+        selectedModel={selectedModel}
+        onResetAll={async () => { await resetAllModels(); load(); }}
+        onResetModel={async (model) => { await resetModel(model); load(); }}
+      />
     </main>
   );
 }

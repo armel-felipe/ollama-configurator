@@ -14,3 +14,9 @@ As configurações por modelo ficam no campo `models`, indexadas pelo identifica
 completo do modelo, incluindo tags como `qwen:latest`. A aplicação só envia
 parâmetros explicitamente personalizados para o Ollama; parâmetros em Default
 são omitidos do payload runtime.
+
+Restaurar configurações remove apenas os overrides salvos no arquivo da
+aplicação. A operação não remove modelos, não altera o servidor Ollama e não
+apaga arquivos fora do diretório de dados da aplicação. A reconciliação mantém
+configurações salvas de modelos que não estão instalados, marcando-os como
+ausentes para que possam ser reconhecidos quando forem instalados novamente.

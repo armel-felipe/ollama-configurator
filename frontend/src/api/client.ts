@@ -41,3 +41,13 @@ export async function applyModelSettings(modelId: string): Promise<unknown> {
   if (!response.ok) throw new Error("Não foi possível aplicar as configurações");
   return response.json();
 }
+
+export async function resetAllModels(): Promise<void> {
+  const response = await fetch("/api/reset/models", { method: "POST" });
+  if (!response.ok) throw new Error("Não foi possível restaurar os modelos");
+}
+
+export async function resetModel(modelId: string): Promise<void> {
+  const response = await fetch(`/api/models/${encodeURIComponent(modelId)}/reset`, { method: "POST" });
+  if (!response.ok) throw new Error("Não foi possível restaurar o modelo");
+}
