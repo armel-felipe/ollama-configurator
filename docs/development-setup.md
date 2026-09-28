@@ -11,6 +11,10 @@
 7. Para clientes externos, inicie o gateway em `127.0.0.1:11435`:
    `uv run uvicorn backend.gateway:app --host 127.0.0.1 --port 11435`.
 
+Na aplicação, a seção `Runtime Gateway` permite iniciar, parar e reiniciar esse
+serviço pela interface. O comando manual continua disponível para diagnóstico e
+desenvolvimento, mas não é necessário para o uso normal.
+
 O frontend é uma interface web local durante o desenvolvimento. O instalador
 final será tratado em uma etapa posterior e não exige comandos Python do usuário.
 

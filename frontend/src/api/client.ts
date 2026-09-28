@@ -93,3 +93,36 @@ export async function resetModel(modelId: string): Promise<void> {
   const response = await fetch(`/api/models/${encodeURIComponent(modelId)}/reset`, { method: "POST" });
   if (!response.ok) throw new Error("Não foi possível restaurar o modelo");
 }
+
+export type GatewayStatus = {
+  state: "stopped" | "starting" | "running" | "external" | "error";
+  host: string;
+  port: number;
+  pid?: number | null;
+  detail?: string | null;
+};
+
+async function gatewayAction(path: string): Promise<GatewayStatus> {
+  const response = await fetch(`/api/gateway/${path}`, { method: path === "status" ? "GET" : "POST" });
+  if (!response.ok) {
+    const body = await response.json().catch(() => null) as { detail?: string } | null;
+    throw new Error(body?.detail ?? "Não foi possível controlar o servidor");
+  }
+  return response.json() as Promise<GatewayStatus>;
+}
+
+export function getGatewayStatus(): Promise<GatewayStatus> {
+  return gatewayAction("status");
+}
+
+export function startGateway(): Promise<GatewayStatus> {
+  return gatewayAction("start");
+}
+
+export function stopGateway(): Promise<GatewayStatus> {
+  return gatewayAction("stop");
+}
+
+export function restartGateway(): Promise<GatewayStatus> {
+  return gatewayAction("restart");
+}

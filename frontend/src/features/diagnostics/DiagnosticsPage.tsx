@@ -4,16 +4,21 @@ import {
   applyModelSettings,
   getModelSettings,
   getModelRuntime,
+  getGatewayStatus,
+  restartGateway,
   runInferenceTest,
   resetAllModels,
   resetModel,
   saveModelSettings,
+  startGateway,
+  stopGateway,
 } from "../../api/client";
 import { ErrorState, LoadingState } from "../shared/StatusState";
 import { ModelsList } from "../models/ModelsList";
 import { ModelSettingsPage } from "../models/ModelSettingsPage";
 import { ResetControls } from "../settings/ResetControls";
 import { InferenceTestPanel } from "../models/InferenceTestPanel";
+import { GatewayControls } from "../gateway/GatewayControls";
 
 type Props = { loadDiagnostics: () => Promise<DiagnosticsSnapshot> };
 
@@ -43,6 +48,12 @@ export function DiagnosticsPage({ loadDiagnostics }: Props) {
         <p>{data.hardware.os} · {data.hardware.architecture}</p>
         {memoryBytes ? <p>{Math.round(memoryBytes / 1024 ** 3)} GB de memória</p> : null}
       </section>
+      <GatewayControls
+        getStatus={getGatewayStatus}
+        start={startGateway}
+        stop={stopGateway}
+        restart={restartGateway}
+      />
       <ModelsList models={data.models} selectedModel={selectedModel} onSelect={setSelectedModel} />
       {selectedModel ? (
         <>

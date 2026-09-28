@@ -54,3 +54,9 @@ salvo da aplicação.
 
 QA de contrato concluído: `/api/chat` normal e streaming NDJSON usam o perfil
 salvo e preservam `think=false`.
+
+## Controle visual da gateway — 7E concluído
+
+A aplicação agora inicia, para, reinicia e monitora a gateway na porta `11435`,
+sem exigir comando manual no terminal. O padrão continua sendo bind local em
+`127.0.0.1`; a configuração Tailscale permanece explícita.

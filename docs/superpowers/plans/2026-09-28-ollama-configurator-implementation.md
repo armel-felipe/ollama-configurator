@@ -390,6 +390,39 @@ the managed profile by implementing the native `/api/chat` contract.
 - [x] **Step 4: Run the complete project gauntlet and test through `OLLAMA_HOST`.**
 - [x] **Step 5: Mark Task 7D complete and commit `feat: support native Ollama chat gateway`.**
 
+### Task 7E: Gateway process manager and application controls
+
+**Status:** Complete.
+
+**Goal:** let the application own the gateway lifecycle on port `11435`, with
+visible status and start/stop/restart controls.
+
+**Files:**
+- Create: `backend/gateway_manager.py`
+- Create: `backend/api/gateway_routes.py`
+- Create: `tests/unit/test_gateway_manager.py`
+- Create: `tests/integration/test_gateway_manager_routes.py`
+- Create: `frontend/src/features/gateway/GatewayControls.tsx`
+- Create: `frontend/src/features/gateway/gatewayControls.test.tsx`
+- Modify: `backend/app.py`
+- Modify: `frontend/src/api/client.ts`
+- Modify: `frontend/src/features/diagnostics/DiagnosticsPage.tsx`
+- Modify: `docs/development-setup.md`
+- Modify: `docs/roadmap.md`
+
+**Interfaces:**
+- `GatewayProcessManager.start()`, `.stop()`, `.restart()`, `.status()` manage only the gateway child process.
+- `GET /api/gateway/status`, `POST /api/gateway/start`, `POST /api/gateway/stop`, and `POST /api/gateway/restart` return state, host, port, PID, and actionable errors.
+- Default bind is `127.0.0.1:11435`; an already-running unmanaged listener is reported rather than killed.
+- The UI exposes `Iniciar servidor`, `Parar servidor`, and `Reiniciar servidor` with starting/running/error states.
+
+- [x] **Step 1: Write failing manager, route, and UI tests.**
+- [x] **Step 2: Run focused tests and verify the expected failures.**
+- [x] **Step 3: Implement the process manager and lifecycle routes.**
+- [x] **Step 4: Implement the gateway controls and integrate them before model selection.**
+- [x] **Step 5: Run the complete project gauntlet and manual QA on port 11435.**
+- [x] **Step 6: Mark Task 7E complete and commit `feat: add gateway lifecycle controls`.**
+
 ### Task 8: Server settings abstraction and macOS adapter
 
 **PRD coverage:** Sections 15–20. Server settings are global, visible before
