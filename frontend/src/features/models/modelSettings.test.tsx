@@ -97,4 +97,44 @@ describe("ModelSettingsPage", () => {
     fireEvent.change(screen.getByLabelText("Temperature", { exact: true }), { target: { value: "0.3" } });
     expect(screen.getByRole("status")).toHaveTextContent("Alterações não salvas");
   });
+
+  it("shows the runtime confirmation after applying saved settings", async () => {
+    const apply = vi.fn().mockResolvedValue({
+      applied: true,
+      runtime: { loaded: true, context: 16384, applied_options: { num_ctx: 16384 } },
+    });
+    render(
+      <ModelSettingsPage
+        modelId="qwen:latest"
+        loadSettings={async () => ({ options: {} })}
+        saveSettings={vi.fn().mockResolvedValue({ options: {} })}
+        applySettings={apply}
+      />,
+    );
+
+    await waitFor(() => expect(screen.getByRole("button", { name: /aplicar/i })).toBeEnabled());
+    fireEvent.click(screen.getByRole("button", { name: /aplicar/i }));
+
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Runtime confirmado: 16K"));
+    expect(apply).toHaveBeenCalledTimes(1);
+  });
+
+  it("requires saving before applying a changed profile", async () => {
+    const apply = vi.fn().mockResolvedValue({ applied: true });
+    render(
+      <ModelSettingsPage
+        modelId="qwen:latest"
+        loadSettings={async () => ({ options: {} })}
+        saveSettings={vi.fn().mockResolvedValue({ options: {} })}
+        applySettings={apply}
+      />,
+    );
+
+    await waitFor(() => expect(screen.getByRole("button", { name: /personalizar temperature/i })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /personalizar temperature/i }));
+    fireEvent.click(screen.getByRole("button", { name: /aplicar/i }));
+
+    expect(apply).not.toHaveBeenCalled();
+    expect(screen.getByRole("status")).toHaveTextContent("Salve as alterações antes de aplicar");
+  });
 });

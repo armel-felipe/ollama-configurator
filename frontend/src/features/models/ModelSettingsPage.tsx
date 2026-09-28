@@ -38,6 +38,7 @@ export function ModelSettingsPage({ modelId, loadSettings, saveSettings, applySe
   const [runtime, setRuntime] = useState<RuntimeStatusData | null>(null);
   const [nativeDefaults, setNativeDefaults] = useState<Record<string, string>>({});
   const [dirty, setDirty] = useState(false);
+  const [applying, setApplying] = useState(false);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -68,12 +69,14 @@ export function ModelSettingsPage({ modelId, loadSettings, saveSettings, applySe
   const setValue = (name: keyof Options, value: string) => {
     setDirty(true);
     setMessage("Alterações não salvas");
+    setRuntime(null);
     setDefaults((current) => ({ ...current, [name]: false }));
     setOptions((current) => ({ ...current, [name]: name === "keep_alive" ? value : Number(value) }));
   };
   const setDefault = (name: keyof Options) => {
     setDirty(true);
     setMessage("Alterações não salvas");
+    setRuntime(null);
     setDefaults((current) => ({ ...current, [name]: true }));
     setOptions((current) => {
       const next = { ...current };
@@ -84,6 +87,7 @@ export function ModelSettingsPage({ modelId, loadSettings, saveSettings, applySe
   const setCustom = (name: keyof Options) => {
     setDirty(true);
     setMessage("Alterações não salvas");
+    setRuntime(null);
     setDefaults((current) => ({ ...current, [name]: false }));
     setOptions((current) => ({
       ...current,
@@ -101,9 +105,27 @@ export function ModelSettingsPage({ modelId, loadSettings, saveSettings, applySe
     setMessage("Configurações salvas");
   };
   const apply = async () => {
-    await applySettings();
-    if (loadRuntime) setRuntime(await loadRuntime());
-    setMessage("Configurações aplicadas");
+    if (dirty) {
+      setMessage("Salve as alterações antes de aplicar");
+      return;
+    }
+    setApplying(true);
+    setMessage("Aplicando no Ollama…");
+    try {
+      const result = await applySettings() as { runtime?: RuntimeStatusData };
+      const observed = result.runtime ?? (loadRuntime ? await loadRuntime() : undefined);
+      if (observed) {
+        setRuntime(observed);
+        const context = observed.context ? `${Math.round(observed.context / 1024)}K` : null;
+        setMessage(context ? `Runtime confirmado: ${context}` : "Configurações aplicadas; runtime não observado");
+      } else {
+        setMessage("Configurações aplicadas; runtime não observado");
+      }
+    } catch (reason: unknown) {
+      setMessage(reason instanceof Error ? reason.message : "Falha ao aplicar configurações");
+    } finally {
+      setApplying(false);
+    }
   };
 
   return (
@@ -130,6 +152,7 @@ export function ModelSettingsPage({ modelId, loadSettings, saveSettings, applySe
               const value = event.target.value;
               setDirty(true);
               setMessage("Alterações não salvas");
+              setRuntime(null);
               setThinkingValue(value === "default" ? "default" : value === "true" ? true : value === "false" ? false : value);
             }}
           >
@@ -172,8 +195,8 @@ export function ModelSettingsPage({ modelId, loadSettings, saveSettings, applySe
         defaultLabel={nativeDefaults.keep_alive}
         presets={[{ label: "5m", value: "5m" }, { label: "30m", value: "30m" }, { label: "1h", value: "1h" }]}
       />
-      <button type="button" onClick={save}>Salvar</button>
-      <button type="button" onClick={apply}>Aplicar no Ollama</button>
+      <button type="button" onClick={save} disabled={applying}>Salvar</button>
+      <button type="button" onClick={apply} disabled={applying}>{applying ? "Aplicando…" : "Aplicar no Ollama"}</button>
       {message ? <p role="status">{message}</p> : null}
       {runtime ? <RuntimeStatus runtime={runtime} /> : null}
     </section>
