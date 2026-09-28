@@ -1,0 +1,322 @@
+# Ollama Configurator Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Build a locally installed macOS/Windows application that discovers Ollama and the host hardware, manages persistent model/server settings safely, and provides a local web UI without arbitrary shell execution.
+
+**Architecture:** A FastAPI backend owns Ollama integration, capability filtering, persistence, diagnostics, and platform adapters. A React/Vite/TypeScript frontend consumes explicit localhost API endpoints. Development runs as separate processes; packaging later bundles the backend and built frontend into platform-specific installers.
+
+**Tech Stack:** Python 3.12+, FastAPI, Pydantic, httpx, pytest, Ruff, mypy; Node.js 22+, React, Vite, TypeScript, Vitest, Playwright; `uv` for Python dependencies; npm with `package-lock.json` for frontend dependencies; PyInstaller for application bundles; `create-dmg` for macOS disk images; Inno Setup for the Windows installer.
+
+**Spec:** `docs/superpowers/specs/2026-09-28-ollama-configurator-design.md` and `PRD_ollama_configurator.md`
+
+## Global Constraints
+
+- Backend: **Python + FastAPI**.
+- Interface: **web UI local**.
+- Default bind address: **127.0.0.1**.
+- Initial platforms: **macOS and Windows**.
+- “Default” means **absence of override**; do not replace it with `0`, `false`, or another arbitrary value.
+- Model configuration must not modify model weights.
+- Reset operations must not remove models or Ollama downloads.
+- No arbitrary shell endpoint such as `POST /run-command`.
+- The UI must derive settings from **Ollama version + SO + hardware + capabilities**.
+- Program files and user data must be stored separately.
+- Dependencies must be declared, locked, documented, and installed from clean environments in CI.
+
+## Review Focus
+
+- Ollama unavailable, stopped, or returning malformed responses: the UI shows an actionable degraded state and never crashes.
+- `Default` versus explicit falsy values (`0`, `false`, empty value): only Default removes an override.
+- Model installed after startup or removed externally: refresh reconciles live models with saved configuration and marks missing models without deleting their settings.
+- Unsupported settings on a given Ollama version/hardware: the API rejects them clearly and the UI does not offer them.
+- Restart/reset failure or insufficient OS permission: configuration state is not falsely reported as applied, and recovery guidance is shown.
+
+## Dependency and repository setup
+
+### Task 1: Repository foundation and dependency manifests
+
+**Files:**
+- Create: `pyproject.toml`
+- Create: `uv.lock`
+- Create: `backend/app.py`
+- Create: `backend/config.py`
+- Create: `backend/logging_config.py`
+- Create: `frontend/package.json`
+- Create: `frontend/package-lock.json`
+- Create: `frontend/tsconfig.json`
+- Create: `frontend/vite.config.ts`
+- Create: `frontend/src/main.tsx`
+- Create: `frontend/src/App.tsx`
+- Create: `tests/unit/test_health.py`
+- Create: `frontend/src/App.test.tsx`
+- Create: `README.md`
+- Create: `docs/dependencies.md`
+- Create: `docs/development-setup.md`
+- Create: `docs/roadmap.md`
+- Create: `.gitignore`
+
+**Interfaces:**
+- Produces `GET /api/health -> HealthResponse { status: "ok", version: string }`.
+- Produces frontend command `npm run dev` and backend command `uv run uvicorn backend.app:app`.
+- Produces dependency manifests and lockfiles for Python and frontend packages.
+
+- [ ] **Step 1: Write failing backend and frontend smoke tests**
+- [ ] **Step 2: Run the tests and verify they fail because the project is not scaffolded**
+- [ ] **Step 3: Add the manifests, minimal FastAPI app, Vite React shell, and typed health response**
+- [ ] **Step 4: Document runtime prerequisites, dependency ownership, lockfile policy, and setup commands**
+- [ ] **Step 5: Run `uv run pytest` and `npm test -- --run` and verify both pass**
+- [ ] **Step 6: Commit `chore: scaffold local application and dependency manifests`**
+
+### Task 2: Shared domain models and configuration semantics
+
+**Files:**
+- Create: `backend/domain/models.py`
+- Create: `backend/domain/settings.py`
+- Create: `backend/domain/capabilities.py`
+- Create: `backend/persistence/paths.py`
+- Create: `backend/persistence/store.py`
+- Create: `tests/unit/test_settings.py`
+- Create: `tests/unit/test_capabilities.py`
+- Create: `tests/unit/test_store.py`
+- Modify: `docs/persistence.md`
+- Modify: `docs/api-contract.md`
+
+**Interfaces:**
+- `ModelOverride(model: str, options: dict[str, JsonValue])`.
+- `ServerOverride(options: dict[str, JsonValue])`.
+- `PersistedConfig(models: dict[str, ModelOverride], server: ServerOverride)`.
+- `normalize_options(options) -> dict[str, JsonValue]`: removes only values explicitly set to Default and preserves `0` and `false`.
+- `ConfigStore.load() -> PersistedConfig` and `ConfigStore.save(config: PersistedConfig) -> None`.
+- `filter_capabilities(capabilities, context) -> list[Capability]`.
+
+- [ ] **Step 1: Write tests for Default removal, explicit falsy values, atomic saves, missing files, and corrupted files**
+- [ ] **Step 2: Run `uv run pytest tests/unit/test_settings.py tests/unit/test_store.py -v` and verify failure**
+- [ ] **Step 3: Implement typed domain models, platform data paths, JSON persistence, schema versioning, and atomic replacement**
+- [ ] **Step 4: Add capability filtering tests for Apple/Metal, NVIDIA/CUDA/Vulkan, and AMD/ROCm/Vulkan contexts**
+- [ ] **Step 5: Run the focused unit tests and verify pass**
+- [ ] **Step 6: Commit `feat: add configuration domain and persistent store`**
+
+### Task 3: Ollama client, discovery, and capabilities
+
+**Files:**
+- Create: `backend/ollama/client.py`
+- Create: `backend/ollama/schemas.py`
+- Create: `backend/ollama/discovery.py`
+- Create: `backend/ollama/capabilities.py`
+- Create: `backend/api/ollama_routes.py`
+- Create: `tests/unit/test_ollama_client.py`
+- Create: `tests/integration/test_ollama_routes.py`
+- Modify: `backend/app.py`
+- Modify: `docs/api-contract.md`
+
+**Interfaces:**
+- `OllamaClient(base_url: str, transport: Transport)`.
+- `OllamaClient.get_version() -> OllamaVersion`.
+- `OllamaClient.list_models() -> list[OllamaModel]`.
+- `OllamaClient.generate(model: str, request: GenerateRequest) -> GenerateResult`.
+- `discover_ollama() -> OllamaDiscovery`.
+- `GET /api/ollama/status -> OllamaStatusResponse`.
+- `GET /api/models -> ModelsResponse`.
+- `GET /api/capabilities -> CapabilitiesResponse`.
+
+- [ ] **Step 1: Write mocked HTTP tests for successful discovery, timeout, connection refusal, malformed JSON, and empty model lists**
+- [ ] **Step 2: Run the focused tests and verify failure**
+- [ ] **Step 3: Implement the typed HTTP client with explicit timeouts and normalized errors**
+- [ ] **Step 4: Implement discovery and capability calculation without invoking a shell command endpoint**
+- [ ] **Step 5: Add routes and API error responses**
+- [ ] **Step 6: Run unit and integration tests and verify pass**
+- [ ] **Step 7: Commit `feat: add Ollama discovery and capability API`**
+
+### Task 4: Hardware detection and read-only diagnostics UI
+
+**Files:**
+- Create: `backend/hardware/detector.py`
+- Create: `backend/hardware/schemas.py`
+- Create: `backend/diagnostics/service.py`
+- Create: `backend/api/diagnostics_routes.py`
+- Create: `frontend/src/api/client.ts`
+- Create: `frontend/src/features/diagnostics/DiagnosticsPage.tsx`
+- Create: `frontend/src/features/models/ModelsList.tsx`
+- Create: `frontend/src/features/shared/StatusState.tsx`
+- Create: `frontend/src/features/diagnostics/diagnostics.test.tsx`
+- Create: `tests/unit/test_hardware_detector.py`
+- Modify: `frontend/src/App.tsx`
+- Modify: `docs/architecture.md`
+
+**Interfaces:**
+- `HardwareDetector.detect() -> HardwareSnapshot`.
+- `GET /api/hardware -> HardwareSnapshot`.
+- `GET /api/diagnostics -> DiagnosticsSnapshot`.
+- Frontend `api.getDiagnostics(): Promise<DiagnosticsSnapshot>`.
+- Frontend `api.getModels(): Promise<ModelsResponse>`.
+
+- [ ] **Step 1: Write detector tests using platform fixture providers, never the developer machine as the expected value**
+- [ ] **Step 2: Write frontend tests for loading, healthy, empty, missing-Ollama, and error states**
+- [ ] **Step 3: Run focused tests and verify failure**
+- [ ] **Step 4: Implement conservative hardware detection with unknown values when a signal is unavailable**
+- [ ] **Step 5: Implement diagnostics and the first usable read-only screen with refresh**
+- [ ] **Step 6: Run backend and frontend tests and perform a manual local smoke test**
+- [ ] **Step 7: Commit `feat: add local Ollama and hardware diagnostics screen`**
+
+## MVP configuration implementation
+
+### Task 5: Basic model settings and runtime application
+
+**Files:**
+- Create: `backend/ollama/options.py`
+- Create: `backend/api/model_settings_routes.py`
+- Create: `frontend/src/features/models/ModelSettingsPage.tsx`
+- Create: `frontend/src/features/models/ParameterControl.tsx`
+- Create: `frontend/src/features/models/modelSettings.test.tsx`
+- Create: `tests/unit/test_model_options.py`
+- Create: `tests/integration/test_model_settings_routes.py`
+- Modify: `backend/ollama/client.py`
+- Modify: `backend/app.py`
+- Modify: `docs/api-contract.md`
+- Modify: `docs/persistence.md`
+
+**Interfaces:**
+- `GET /api/models/{model_id}/settings -> ModelSettingsResponse`.
+- `PUT /api/models/{model_id}/settings -> ModelSettingsResponse`.
+- `POST /api/models/{model_id}/apply -> ApplyModelSettingsResponse`.
+- `DELETE /api/models/{model_id}/settings/{parameter} -> ModelSettingsResponse`.
+- `ModelSettingsService.get(model_id)`, `.update(model_id, patch)`, `.reset_parameter(model_id, parameter)`.
+
+- [ ] **Step 1: Write tests for basic parameters, range validation, unsupported parameters, model IDs containing tags, and Default semantics**
+- [ ] **Step 2: Run focused tests and verify failure**
+- [ ] **Step 3: Implement option schemas, capability-aware validation, persistence, and explicit runtime application**
+- [ ] **Step 4: Implement the model settings UI with Basic/Advanced separation reserved for later expansion**
+- [ ] **Step 5: Run tests and manually verify a setting survives application restart**
+- [ ] **Step 6: Commit `feat: add persistent basic model settings`**
+
+### Task 6: Model reset flows and reconciliation
+
+**Files:**
+- Create: `backend/api/reset_routes.py`
+- Create: `backend/persistence/reconciliation.py`
+- Create: `frontend/src/features/settings/ResetControls.tsx`
+- Create: `frontend/src/features/settings/resetControls.test.tsx`
+- Create: `tests/unit/test_reconciliation.py`
+- Create: `tests/integration/test_reset_routes.py`
+- Modify: `backend/app.py`
+- Modify: `docs/security.md`
+- Modify: `docs/persistence.md`
+
+**Interfaces:**
+- `reconcile_saved_models(saved, installed) -> list[ModelState]`.
+- `POST /api/reset/models -> ResetResult`.
+- `POST /api/models/{model_id}/reset -> ResetResult`.
+- `POST /api/models/{model_id}/settings/{parameter}/reset -> ResetResult`.
+
+- [ ] **Step 1: Write tests for global reset, individual reset, missing models, and proof that model files are not touched**
+- [ ] **Step 2: Run focused tests and verify failure**
+- [ ] **Step 3: Implement reconciliation and reset services using the ConfigStore only**
+- [ ] **Step 4: Add confirmation UI for global reset and clear result/error states**
+- [ ] **Step 5: Run tests and verify no Ollama model deletion API is called**
+- [ ] **Step 6: Commit `feat: add safe model reset and reconciliation`**
+
+### Task 7: Server settings abstraction and macOS adapter
+
+**Files:**
+- Create: `backend/os_adapters/base.py`
+- Create: `backend/os_adapters/macos.py`
+- Create: `backend/server_settings/catalog.py`
+- Create: `backend/server_settings/service.py`
+- Create: `backend/api/server_settings_routes.py`
+- Create: `tests/unit/test_server_settings.py`
+- Create: `tests/unit/test_macos_adapter.py`
+- Create: `tests/integration/test_server_settings_routes.py`
+- Modify: `backend/app.py`
+- Modify: `docs/platform-adapters.md`
+
+**Interfaces:**
+- `SystemAdapter.get_environment(name: str) -> str | None`.
+- `SystemAdapter.set_environment(name: str, value: str) -> None`.
+- `SystemAdapter.remove_environment(name: str) -> None`.
+- `SystemAdapter.restart_ollama() -> RestartResult`.
+- `SystemAdapter.open_logs() -> None`.
+- `ServerSettingsService.get()`, `.update(patch)`, `.reset()`, `.restart()`.
+- `GET /api/server/settings`.
+- `PUT /api/server/settings`.
+- `POST /api/server/settings/reset`.
+- `POST /api/server/restart`.
+
+- [ ] **Step 1: Write adapter contract tests with a fake process/environment boundary**
+- [ ] **Step 2: Write macOS persistence tests for install, update, remove, restart, and permission failure**
+- [ ] **Step 3: Run focused tests and verify failure**
+- [ ] **Step 4: Implement the shared adapter contract and macOS persistence with a managed per-user LaunchAgent that reapplies configured environment values at login and a controlled Ollama restart; reset removes the managed LaunchAgent and its overrides**
+- [ ] **Step 5: Implement capability-aware server setting validation and explicit reset-as-removal**
+- [ ] **Step 6: Add API routes and UI controls with restart confirmation**
+- [ ] **Step 7: Validate persistence across Ollama restart and reboot on macOS**
+- [ ] **Step 8: Commit `feat: add persistent macOS server settings`**
+
+### Task 8: Windows adapter and cross-platform server settings
+
+**Files:**
+- Create: `backend/os_adapters/windows.py`
+- Create: `tests/unit/test_windows_adapter.py`
+- Create: `tests/integration/test_windows_server_persistence.py`
+- Modify: `backend/os_adapters/base.py`
+- Modify: `backend/server_settings/service.py`
+- Modify: `docs/platform-adapters.md`
+- Modify: `docs/development-setup.md`
+
+**Interfaces:**
+- Implements the same `SystemAdapter` interface as Task 7.
+- No Windows-specific behavior may leak into API route contracts.
+
+- [ ] **Step 1: Write Windows adapter tests for persistent user settings, removal, restart, and permission failure**
+- [ ] **Step 2: Run cross-platform unit tests and verify failure on the unimplemented adapter**
+- [ ] **Step 3: Implement the Windows adapter using the selected persistent user/system mechanism**
+- [ ] **Step 4: Run native Windows validation for logout/login and reboot persistence**
+- [ ] **Step 5: Commit `feat: add persistent Windows server settings`**
+
+## MVP integration and distribution
+
+### Task 9: MVP 0.1 diagnostics, security, and acceptance suite
+
+**Files:**
+- Create: `tests/acceptance/test_mvp_01.py`
+- Create: `tests/security/test_local_only.py`
+- Create: `docs/testing.md`
+- Create: `docs/runbooks/ollama-unavailable.md`
+- Modify: `backend/app.py`
+- Modify: `frontend/src/App.tsx`
+- Modify: `README.md`
+
+- [ ] **Step 1: Map each PRD acceptance criterion to a test or documented native validation**
+- [ ] **Step 2: Add tests proving localhost binding and absence of arbitrary command routes**
+- [ ] **Step 3: Add end-to-end flows for discovery, model settings, server settings, restart, and reset**
+- [ ] **Step 4: Run backend, frontend, security, and acceptance suites from clean lockfile installs**
+- [ ] **Step 5: Validate the complete flow on macOS and Windows**
+- [ ] **Step 6: Commit `test: validate MVP 0.1 acceptance criteria`**
+
+### Task 10: Packaging, installers, and release documentation
+
+**Files:**
+- Create: `packaging/macos/`
+- Create: `packaging/windows/`
+- Create: `scripts/build_backend.py`
+- Create: `scripts/build_frontend.mjs`
+- Create: `docs/packaging.md`
+- Create: `docs/uninstall.md`
+- Create: `docs/release-process.md`
+- Create: `.github/workflows/test.yml`
+- Create: `.github/workflows/build-macos.yml`
+- Create: `.github/workflows/build-windows.yml`
+
+- [ ] **Step 1: Write packaging smoke tests for artifact existence, version reporting, localhost binding, and clean uninstall behavior**
+- [ ] **Step 2: Build the backend with PyInstaller and the frontend from its lockfile**
+- [ ] **Step 3: Create macOS `.app`/`.dmg` and Windows installer artifacts**
+- [ ] **Step 4: Document data retention, uninstall behavior, signing, notarization, checksums, and GitHub Releases**
+- [ ] **Step 5: Run clean-machine installation, launch, upgrade, and uninstall validation on both platforms**
+- [ ] **Step 6: Commit `build: add cross-platform packaging pipeline`**
+
+## Later plan boundary
+
+MVP 0.2 gets a separate plan after MVP 0.1 is validated. It will cover advanced settings, profiles, recommendations, benchmark execution, metric collection, and comparisons. MVP 0.3 packaging work may be split into a separate release plan if installer validation exposes platform-specific complexity.
+
+## Execution handoff
+
+Implement this plan in order. Use `superpowers:executing-plans` for native implementation or `superpowers:subagent-driven-development` for task-by-task delegated implementation. Do not begin implementation until the repository location and Git initialization/clone target are confirmed.

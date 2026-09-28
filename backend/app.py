@@ -1,0 +1,24 @@
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+from backend.api.diagnostics_routes import router as diagnostics_router
+from backend.api.ollama_routes import router as ollama_router
+from backend.config import settings
+from backend.logging_config import configure_logging
+
+configure_logging()
+
+
+class HealthResponse(BaseModel):
+    status: str
+    version: str
+
+
+app = FastAPI(title=settings.app_name, version=settings.version)
+app.include_router(ollama_router)
+app.include_router(diagnostics_router)
+
+
+@app.get("/api/health", response_model=HealthResponse)
+def health() -> HealthResponse:
+    return HealthResponse(status="ok", version=settings.version)
