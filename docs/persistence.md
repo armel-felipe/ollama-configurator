@@ -20,3 +20,10 @@ aplicação. A operação não remove modelos, não altera o servidor Ollama e n
 apaga arquivos fora do diretório de dados da aplicação. A reconciliação mantém
 configurações salvas de modelos que não estão instalados, marcando-os como
 ausentes para que possam ser reconhecidos quando forem instalados novamente.
+
+O perfil `think` também é salvo por modelo somente quando o valor é suportado
+pela especificação retornada por `/api/show`. A aplicação não inventa níveis
+de reasoning. Durante a aplicação, o runner é descarregado e recarregado para
+que mudanças de contexto sejam observáveis em `/api/ps`; parâmetros que o
+Ollama não publica nesse endpoint permanecem identificados como perfil enviado,
+sem serem apresentados como uma medição falsa do runtime.

@@ -23,3 +23,15 @@ class OllamaStatusResponse(BaseModel):
 
 class CapabilitiesResponse(BaseModel):
     capabilities: list[str]
+
+
+class ThinkingSpec(BaseModel):
+    values: list[bool | str] = Field(default_factory=list)
+    default: bool | str | None = None
+
+
+class RuntimeModel(BaseModel):
+    name: str
+    context_length: int | None = None
+    processor: str | None = None
+    until: str | None = None

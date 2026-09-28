@@ -59,4 +59,42 @@ describe("ModelSettingsPage", () => {
 
     expect(screen.getByLabelText("Temperature", { exact: true })).not.toBeDisabled();
   });
+
+  it("persists Default instead of the previous custom value", async () => {
+    const save = vi.fn().mockResolvedValue({ options: {} });
+    render(
+      <ModelSettingsPage
+        modelId="qwen:latest"
+        loadSettings={async () => ({ options: { num_ctx: 32768 }, defaults: { num_ctx: "Ollama Default" } })}
+        saveSettings={save}
+        applySettings={vi.fn().mockResolvedValue({ applied: true })}
+      />,
+    );
+
+    await waitFor(() => expect(screen.getByLabelText("Context Window", { exact: true })).toHaveValue(32768));
+    fireEvent.click(screen.getByRole("button", { name: "Context Window Ollama Default" }));
+    fireEvent.click(screen.getByRole("button", { name: /salvar/i }));
+
+    await waitFor(() => expect(save).toHaveBeenCalledWith(expect.objectContaining({ num_ctx: "default" })));
+  });
+
+  it("marks the screen as having unsaved changes after a successful save", async () => {
+    render(
+      <ModelSettingsPage
+        modelId="qwen:latest"
+        loadSettings={async () => ({ options: { temperature: 0.7 } })}
+        saveSettings={vi.fn().mockResolvedValue({ options: { temperature: 0.2 } })}
+        applySettings={vi.fn().mockResolvedValue({ applied: true })}
+      />,
+    );
+
+    await waitFor(() => expect(screen.getByLabelText("Temperature", { exact: true })).toHaveValue(0.7));
+    fireEvent.change(screen.getByLabelText("Temperature", { exact: true }), { target: { value: "0.2" } });
+    expect(screen.getByRole("status")).toHaveTextContent("Alterações não salvas");
+    fireEvent.click(screen.getByRole("button", { name: /salvar/i }));
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Configurações salvas"));
+
+    fireEvent.change(screen.getByLabelText("Temperature", { exact: true }), { target: { value: "0.3" } });
+    expect(screen.getByRole("status")).toHaveTextContent("Alterações não salvas");
+  });
 });

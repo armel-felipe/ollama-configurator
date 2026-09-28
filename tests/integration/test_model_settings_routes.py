@@ -17,10 +17,17 @@ async def test_model_settings_round_trip_for_tagged_model(
     store = ConfigStore(tmp_path / "config.json")
 
     def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/api/show":
+            return httpx.Response(200, json={})
+        if request.url.path == "/api/ps":
+            return httpx.Response(200, json={"models": []})
         assert request.url.path == "/api/generate"
         payload = json.loads(request.content)
         assert payload["model"] == "qwen:latest"
-        assert payload["options"] == {"temperature": 0.2, "num_ctx": 32768}
+        if payload.get("keep_alive") == 0:
+            assert payload["options"] == {}
+        else:
+            assert payload["options"] == {"temperature": 0.2, "num_ctx": 32768}
         return httpx.Response(200, json={"response": "", "done": True})
 
     client = OllamaClient("http://ollama", transport=httpx.MockTransport(handler))

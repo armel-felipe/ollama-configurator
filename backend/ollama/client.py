@@ -29,6 +29,8 @@ class OllamaClient:
         client_factory: Callable[..., httpx.Client] = httpx.Client,
     ) -> None:
         self.base_url = base_url.rstrip("/")
+        self._transport = transport
+        self._client_factory = client_factory
         self._client = client_factory(base_url=self.base_url, timeout=5.0, transport=transport)
 
     def get_version(self) -> OllamaVersion:
@@ -58,12 +60,39 @@ class OllamaClient:
             )
         return normalized
 
+    def show_model(self, model: str) -> dict[str, Any]:
+        return self._post_json("/api/show", {"model": model})
+
+    def list_running_models(self) -> list[dict[str, Any]]:
+        data = self._get_json("/api/ps")
+        models = data.get("models")
+        if not isinstance(models, list):
+            raise OllamaResponseError("Ollama running models response is invalid")
+        return [model for model in models if isinstance(model, dict)]
+
+    def reload_model(
+        self,
+        model: str,
+        options: dict[str, Any],
+        think: bool | str | None,
+        keep_alive: str | int | None,
+    ) -> None:
+        self.generate(model, keep_alive=0)
+        self._client.close()
+        self._client = self._client_factory(
+            base_url=self.base_url,
+            timeout=5.0,
+            transport=self._transport,
+        )
+        self.generate(model, options=options, think=think, keep_alive=keep_alive)
+
     def generate(
         self,
         model: str,
         prompt: str = "",
         options: dict[str, Any] | None = None,
         keep_alive: str | int | None = None,
+        think: bool | str | None = None,
     ) -> dict[str, Any]:
         payload: dict[str, Any] = {
             "model": model,
@@ -73,14 +102,27 @@ class OllamaClient:
         }
         if keep_alive is not None:
             payload["keep_alive"] = keep_alive
+        if think is not None:
+            payload["think"] = think
         try:
-            response = self._client.post("/api/generate", json=payload)
+            response = self._client.post("/api/generate", json=payload, timeout=180.0)
             response.raise_for_status()
             data = response.json()
         except (httpx.HTTPError, ValueError) as error:
             raise OllamaConnectionError("Ollama could not apply model settings") from error
         if not isinstance(data, dict):
             raise OllamaResponseError("Ollama generate response is invalid")
+        return data
+
+    def _post_json(self, path: str, payload: dict[str, Any]) -> dict[str, Any]:
+        try:
+            response = self._client.post(path, json=payload)
+            response.raise_for_status()
+            data = response.json()
+        except (httpx.HTTPError, ValueError) as error:
+            raise OllamaConnectionError("Ollama is unavailable") from error
+        if not isinstance(data, dict):
+            raise OllamaResponseError("Ollama returned a non-object response")
         return data
 
     def _get_json(self, path: str) -> dict[str, Any]:

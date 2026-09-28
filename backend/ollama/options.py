@@ -4,7 +4,47 @@ from backend.domain.settings import normalize_options
 from backend.ollama.client import OllamaClient
 from backend.persistence.store import ConfigStore
 
-SUPPORTED_OPTIONS = {"num_ctx", "temperature", "num_predict", "keep_alive"}
+SUPPORTED_OPTIONS = {"num_ctx", "temperature", "num_predict", "keep_alive", "think"}
+
+
+def extract_model_defaults(spec: dict[str, Any]) -> dict[str, str]:
+    defaults = {
+        "num_ctx": "Ollama Default (dinâmico)",
+        "temperature": "Ollama Default",
+        "num_predict": "Ollama Default",
+        "keep_alive": "Ollama Default (servidor)",
+    }
+    parameters = spec.get("parameters")
+    if isinstance(parameters, str):
+        for line in parameters.splitlines():
+            parts = line.split()
+            if len(parts) >= 2 and parts[0] in {
+                "temperature",
+                "num_predict",
+                "num_ctx",
+                "keep_alive",
+            }:
+                defaults[parts[0]] = parts[1]
+    model_info = spec.get("model_info")
+    if isinstance(model_info, dict):
+        context_length = next(
+            (
+                value
+                for key, value in model_info.items()
+                if key.endswith(".context_length") and isinstance(value, int)
+            ),
+            None,
+        )
+        if context_length is not None:
+            defaults["num_ctx"] = f"Ollama Default (dinâmico; máximo do modelo {context_length})"
+    return defaults
+
+
+def validate_thinking(value: Any, spec: dict[str, Any]) -> bool | str:
+    values = spec.get("values", [])
+    if not isinstance(values, list) or value not in values or not isinstance(value, (bool, str)):
+        raise ValueError(f"unsupported thinking value: {value}")
+    return value
 
 
 def validate_option_patch(patch: dict[str, Any]) -> dict[str, Any]:
@@ -12,6 +52,10 @@ def validate_option_patch(patch: dict[str, Any]) -> dict[str, Any]:
         if name not in SUPPORTED_OPTIONS:
             raise ValueError(f"unsupported model option: {name}")
         if value == "default":
+            continue
+        if name == "think":
+            if value != "default" and (not isinstance(value, (bool, str))):
+                raise ValueError("think must be a boolean, level, or default")
             continue
         if name == "num_ctx" and (
             not isinstance(value, int) or isinstance(value, bool) or value < 1
@@ -65,4 +109,6 @@ class ModelSettingsService:
     def apply(self, model_id: str) -> dict[str, Any]:
         options = self.get(model_id)
         keep_alive = options.pop("keep_alive", None)
-        return self.client.generate(model_id, options=options, keep_alive=keep_alive)
+        think = options.pop("think", None)
+        self.client.reload_model(model_id, options, think=think, keep_alive=keep_alive)
+        return options | ({"think": think} if think is not None else {})

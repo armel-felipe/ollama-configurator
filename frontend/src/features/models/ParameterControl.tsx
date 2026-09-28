@@ -7,6 +7,8 @@ type Props = {
   onChange: (value: string) => void;
   onCustom: () => void;
   onDefault: () => void;
+  presets?: Array<{ label: string; value: string }>;
+  defaultLabel?: string;
 };
 
 export function ParameterControl({
@@ -18,10 +20,13 @@ export function ParameterControl({
   onChange,
   onCustom,
   onDefault,
+  presets = [],
+  defaultLabel = "Ollama Default",
 }: Props) {
   return (
     <div>
       <label htmlFor={id}>{label}</label>
+      <small>Default: {defaultLabel}</small>
       <input
         id={id}
         type={type}
@@ -29,6 +34,15 @@ export function ParameterControl({
         disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
       />
+      {presets.length > 0 ? (
+        <div aria-label={`${label} presets`}>
+          {presets.map((preset) => (
+            <button key={preset.value} type="button" disabled={disabled} onClick={() => onChange(preset.value)}>
+              {preset.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
       <button
         type="button"
         onClick={disabled ? onCustom : onDefault}

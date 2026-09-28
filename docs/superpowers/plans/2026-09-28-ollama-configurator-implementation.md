@@ -216,7 +216,51 @@
 - [ ] **Step 5: Run tests and verify no Ollama model deletion API is called**
 - [ ] **Step 6: Commit `feat: add safe model reset and reconciliation`**
 
-### Task 7: Server settings abstraction and macOS adapter
+### Task 7: Effective model runtime profile and thinking controls
+
+**Goal:** expose model-declared defaults and thinking controls, apply every saved runtime option by reloading the Ollama runner, and verify the effective context through `/api/ps`.
+
+**Files:**
+- Create: `backend/ollama/runtime.py`
+- Create: `backend/api/model_runtime_routes.py`
+- Create: `frontend/src/features/models/RuntimeStatus.tsx`
+- Create: `frontend/src/features/models/runtimeStatus.test.tsx`
+- Modify: `backend/ollama/client.py`
+- Modify: `backend/ollama/options.py`
+- Modify: `backend/ollama/schemas.py`
+- Modify: `backend/api/model_settings_routes.py`
+- Modify: `backend/app.py`
+- Modify: `frontend/src/api/client.ts`
+- Modify: `frontend/src/features/models/ModelSettingsPage.tsx`
+- Modify: `frontend/src/features/models/ParameterControl.tsx`
+- Modify: `frontend/src/features/models/modelSettings.test.tsx`
+- Create: `tests/unit/test_runtime_profile.py`
+- Create: `tests/integration/test_model_runtime_routes.py`
+- Modify: `tests/unit/test_ollama_client.py`
+- Modify: `tests/integration/test_model_settings_routes.py`
+- Modify: `docs/api-contract.md`
+- Modify: `docs/persistence.md`
+
+**Interfaces:**
+- `OllamaClient.show_model(model_id) -> ModelSpec`.
+- `OllamaClient.list_running_models() -> list[RunningModel]`.
+- `OllamaClient.reload_model(model_id, options, think, keep_alive) -> None`.
+- `GET /api/models/{model_id}/runtime -> RuntimeStatusResponse`.
+- `GET /api/models/{model_id}/settings -> ModelSettingsResponse` including model-declared thinking values/default and native-default labels.
+- `POST /api/models/{model_id}/apply -> ApplyModelSettingsResponse` including the applied profile and observed runtime status.
+- Thinking values are accepted only when declared by `/api/show`; `false`, `true`, and model-defined strings are preserved exactly.
+- Applying first unloads the current runner with `keep_alive=0`, then reloads it with the complete saved profile.
+- Context presets are 16K/32K/64K/128K/256K and custom positive integer input remains available.
+
+- [x] **Step 1: Write failing tests for `/api/show`, `/api/ps`, model-defined thinking values/defaults, runner reload, and effective runtime status.**
+- [x] **Step 2: Run focused backend/frontend tests and verify the expected failures.**
+- [x] **Step 3: Implement typed Ollama model-spec/runtime client methods and strict thinking validation.**
+- [x] **Step 4: Implement apply-as-unload-then-reload and runtime status routes; retain the last applied profile for fields Ollama does not expose in `/api/ps`.**
+- [x] **Step 5: Implement presets, free input, thinking controls, native-default labels, dirty/saved/applied states, and runtime status UI.**
+- [x] **Step 6: Run focused tests, then the complete project gauntlet and manual browser QA against the local Ollama models.**
+- [ ] **Step 7: Commit `feat: add verified model runtime profiles and thinking controls`.**
+
+### Task 8: Server settings abstraction and macOS adapter
 
 **Files:**
 - Create: `backend/os_adapters/base.py`
@@ -251,7 +295,7 @@
 - [ ] **Step 7: Validate persistence across Ollama restart and reboot on macOS**
 - [ ] **Step 8: Commit `feat: add persistent macOS server settings`**
 
-### Task 8: Windows adapter and cross-platform server settings
+### Task 9: Windows adapter and cross-platform server settings
 
 **Files:**
 - Create: `backend/os_adapters/windows.py`
@@ -274,7 +318,7 @@
 
 ## MVP integration and distribution
 
-### Task 9: MVP 0.1 diagnostics, security, and acceptance suite
+### Task 10: MVP 0.1 diagnostics, security, and acceptance suite
 
 **Files:**
 - Create: `tests/acceptance/test_mvp_01.py`
@@ -292,7 +336,7 @@
 - [ ] **Step 5: Validate the complete flow on macOS and Windows**
 - [ ] **Step 6: Commit `test: validate MVP 0.1 acceptance criteria`**
 
-### Task 10: Packaging, installers, and release documentation
+### Task 11: Packaging, installers, and release documentation
 
 **Files:**
 - Create: `packaging/macos/`

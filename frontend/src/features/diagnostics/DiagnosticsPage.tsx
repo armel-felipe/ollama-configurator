@@ -3,6 +3,7 @@ import type { DiagnosticsSnapshot } from "../../api/client";
 import {
   applyModelSettings,
   getModelSettings,
+  getModelRuntime,
   resetAllModels,
   resetModel,
   saveModelSettings,
@@ -47,6 +48,7 @@ export function DiagnosticsPage({ loadDiagnostics }: Props) {
           loadSettings={() => getModelSettings(selectedModel)}
           saveSettings={(options) => saveModelSettings(selectedModel, options)}
           applySettings={() => applyModelSettings(selectedModel)}
+          loadRuntime={() => getModelRuntime(selectedModel)}
         />
       ) : <p>Selecione um modelo para configurar.</p>}
       <ResetControls

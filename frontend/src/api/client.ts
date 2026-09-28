@@ -17,15 +17,35 @@ export async function getDiagnostics(): Promise<DiagnosticsSnapshot> {
   return response.json() as Promise<DiagnosticsSnapshot>;
 }
 
-export async function getModelSettings(modelId: string): Promise<{ options: Record<string, number | string> }> {
+export async function getModelSettings(modelId: string): Promise<{
+  options: Record<string, number | string | boolean>;
+  thinking?: { values: Array<boolean | string>; default?: boolean | string | null } | null;
+  defaults?: Record<string, string>;
+}> {
   const response = await fetch(`/api/models/${encodeURIComponent(modelId)}/settings`);
   if (!response.ok) throw new Error("Não foi possível carregar as configurações");
   return response.json() as Promise<{ options: Record<string, number | string> }>;
 }
 
+export type RuntimeStatus = {
+  model?: string;
+  loaded: boolean;
+  context?: number | null;
+  processor?: string | null;
+  until?: string | null;
+  applied_options: Record<string, number | string | boolean>;
+  observed_at?: string;
+};
+
+export async function getModelRuntime(modelId: string): Promise<RuntimeStatus> {
+  const response = await fetch(`/api/models/${encodeURIComponent(modelId)}/runtime`);
+  if (!response.ok) throw new Error("Não foi possível consultar o runtime");
+  return response.json() as Promise<RuntimeStatus>;
+}
+
 export async function saveModelSettings(
   modelId: string,
-  options: Record<string, number | string>,
+  options: Record<string, number | string | boolean>,
 ): Promise<unknown> {
   const response = await fetch(`/api/models/${encodeURIComponent(modelId)}/settings`, {
     method: "PUT",
