@@ -260,6 +260,45 @@
 - [x] **Step 6: Run focused tests, then the complete project gauntlet and manual browser QA against the local Ollama models.**
 - [x] **Step 7: Commit `feat: add verified model runtime profiles and thinking controls`.**
 
+### Task 7A: Inference verification panel and thinking enforcement
+
+**Status:** Blocking gate before Task 8.
+
+**Goal:** prove the behavior of the saved model profile through an inference
+request originated by the application, rather than inferring it only from
+saved state or runner metadata.
+
+**Files:**
+- Create: `backend/api/inference_routes.py`
+- Create: `backend/inference/service.py`
+- Create: `frontend/src/features/models/InferenceTestPanel.tsx`
+- Create: `frontend/src/features/models/inferenceTest.test.tsx`
+- Create: `tests/unit/test_inference_service.py`
+- Create: `tests/integration/test_inference_routes.py`
+- Modify: `backend/ollama/client.py`
+- Modify: `backend/app.py`
+- Modify: `frontend/src/api/client.ts`
+- Modify: `frontend/src/features/diagnostics/DiagnosticsPage.tsx`
+- Modify: `docs/api-contract.md`
+- Modify: `docs/persistence.md`
+
+**Interfaces:**
+- `POST /api/models/{model_id}/inference-test` accepts `{ "prompt": string }` and returns the requested profile, final response, optional thinking output, and runtime status.
+- `InferenceService.run(model_id, prompt) -> InferenceResult` loads the persisted model profile and sends `think` as a top-level Ollama request field.
+- The UI displays `Thinking solicitado`, `Thinking recebido`, `Contexto efetivo`, and the final response separately.
+- `think=false` is verified by absence of a non-empty `thinking` field and absence of leaked `<think>` tags in the final response.
+- `think=true` or a supported named level is verified by the model response when the model emits thinking.
+- The application does not claim to control an unrelated interactive `ollama run` session; that limitation is visible in the UI.
+
+- [ ] **Step 1: Write failing tests for inference with `think=false`, `think=true`, named levels, profile merging, and leaked thinking tags.**
+- [ ] **Step 2: Run focused backend/frontend tests and verify the expected failures.**
+- [ ] **Step 3: Implement the inference service and route using the saved profile on every request.**
+- [ ] **Step 4: Implement the panel with separate thinking/final response, requested/observed state, loading, error, and limitation messaging.**
+- [ ] **Step 5: Run the exact Gemma4 prompt test and verify `think=false` produces no thinking output.**
+- [ ] **Step 6: Run the complete project gauntlet and manual browser QA.**
+- [ ] **Step 7: Mark Task 7A complete only after the inference acceptance gate passes.**
+- [ ] **Step 8: Commit `feat: add verified in-app inference testing`.**
+
 ### Task 8: Server settings abstraction and macOS adapter
 
 **PRD coverage:** Sections 15–20. Server settings are global, visible before
