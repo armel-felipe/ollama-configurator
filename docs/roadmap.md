@@ -38,3 +38,10 @@ chave de acesso.
 
 QA real concluído: `100.87.71.48:11435` respondeu pelo Tailscale, uma chamada
 OpenAI-compatible chegou ao Gemma4 e o perfil salvo continuou prevalecendo.
+
+## Streaming do Runtime Gateway — 7C concluído
+
+O gateway agora adapta o fluxo incremental do Ollama para NDJSON e SSE
+compatível com OpenCode, mantendo o perfil salvo — inclusive `think=false` — em
+cada requisição. O Gemma4 foi validado em streaming real com múltiplos chunks e
+marcador `[DONE]`.

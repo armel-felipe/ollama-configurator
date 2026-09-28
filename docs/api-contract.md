@@ -43,5 +43,7 @@ O gateway é executado separadamente em `127.0.0.1:11435` por padrão:
 
 Valores explicitamente salvos pela aplicação têm precedência sobre valores
 enviados pelo cliente. Valores em Default permanecem ausentes e deixam o cliente
-ou Ollama decidir. Streaming ainda retorna erro explícito até existir um
-adaptador de streaming validado.
+ou Ollama decidir. Com `stream=true`, `/api/generate` retorna NDJSON e
+`/v1/chat/completions` retorna SSE com chunks OpenAI e o marcador final `[DONE]`.
+Thinking recebido durante streaming é exposto como `reasoning_content`; quando o
+perfil define `think=false`, nenhum delta de thinking é emitido.

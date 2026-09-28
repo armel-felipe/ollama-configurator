@@ -54,7 +54,7 @@ async def test_gateway_supports_ollama_generate_and_requires_key(tmp_path: Path)
 
 
 @pytest.mark.asyncio
-async def test_gateway_openai_route_rejects_streaming_until_supported(tmp_path: Path) -> None:
+async def test_gateway_openai_route_returns_sse_stream(tmp_path: Path) -> None:
     store = ConfigStore(tmp_path / "config.json")
     store.save({"models": {}, "server": {}})
 
@@ -67,6 +67,10 @@ async def test_gateway_openai_route_rejects_streaming_until_supported(tmp_path: 
         ) -> dict[str, object]:
             return {}
 
+        def chat_stream(self, _model: str, _messages: list[dict[str, object]], **_: object):
+            yield {"message": {"role": "assistant", "content": "Olá"}, "done": False}
+            yield {"message": {"role": "assistant", "content": " mundo"}, "done": True}
+
     app = create_gateway_app(store=store, client=FakeClient())
     transport = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as http_client:
@@ -75,5 +79,8 @@ async def test_gateway_openai_route_rejects_streaming_until_supported(tmp_path: 
             json={"model": "qwen:latest", "messages": [], "stream": True},
         )
 
-    assert response.status_code == 400
-    assert "stream" in response.json()["detail"].lower()
+    assert response.status_code == 200
+    assert "text/event-stream" in response.headers["content-type"]
+    assert '"content": "Olá"' in response.text
+    assert '"content": " mundo"' in response.text
+    assert "data: [DONE]" in response.text

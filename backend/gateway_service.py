@@ -1,4 +1,5 @@
 import time
+from collections.abc import Iterator
 from typing import Any, Protocol
 from uuid import uuid4
 
@@ -23,6 +24,24 @@ class GatewayClient(Protocol):
         keep_alive: str | int | None = None,
         think: bool | str | None = None,
     ) -> dict[str, Any]: ...
+
+    def generate_stream(
+        self,
+        model: str,
+        prompt: str = "",
+        options: dict[str, Any] | None = None,
+        keep_alive: str | int | None = None,
+        think: bool | str | None = None,
+    ) -> Iterator[dict[str, Any]]: ...
+
+    def chat_stream(
+        self,
+        model: str,
+        messages: list[dict[str, Any]],
+        options: dict[str, Any] | None = None,
+        keep_alive: str | int | None = None,
+        think: bool | str | None = None,
+    ) -> Iterator[dict[str, Any]]: ...
 
 
 class GatewayService:
@@ -81,6 +100,55 @@ class GatewayService:
                 + (result.get("eval_count", 0) or 0),
             },
         }
+
+    def stream_generate(self, payload: dict[str, Any]) -> Iterator[dict[str, Any]]:
+        model, options, think, keep_alive = self._profile(payload)
+        prompt = payload.get("prompt", "")
+        if not isinstance(prompt, str):
+            raise ValueError("prompt must be a string")
+        yield from self.client.generate_stream(
+            model,
+            prompt=prompt,
+            options=options,
+            think=think,
+            keep_alive=keep_alive,
+        )
+
+    def stream_chat(self, payload: dict[str, Any]) -> Iterator[dict[str, Any]]:
+        model, options, think, keep_alive = self._profile(payload)
+        messages = payload.get("messages")
+        if not isinstance(messages, list) or not all(isinstance(item, dict) for item in messages):
+            raise ValueError("messages must be a list of objects")
+        stream_id = f"chatcmpl-{uuid4().hex}"
+        created = int(time.time())
+        for result in self.client.chat_stream(
+            model,
+            messages,
+            options=options,
+            think=think,
+            keep_alive=keep_alive,
+        ):
+            message = result.get("message")
+            if not isinstance(message, dict):
+                raise ValueError("Ollama chat stream chunk is invalid")
+            delta: dict[str, Any] = {}
+            if isinstance(message.get("role"), str):
+                delta["role"] = message["role"]
+            if isinstance(message.get("content"), str):
+                delta["content"] = message["content"]
+            if isinstance(message.get("thinking"), str):
+                delta["reasoning_content"] = message["thinking"]
+            yield {
+                "id": stream_id,
+                "object": "chat.completion.chunk",
+                "created": created,
+                "model": model,
+                "choices": [{
+                    "index": 0,
+                    "delta": delta,
+                    "finish_reason": "stop" if result.get("done") else None,
+                }],
+            }
 
     def _profile(
         self, payload: dict[str, Any]

@@ -1,7 +1,10 @@
+import json
 import os
+from collections.abc import Iterator
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import StreamingResponse
 
 from backend.gateway_service import GatewayService
 from backend.ollama.client import get_ollama_client
@@ -34,17 +37,39 @@ def create_gateway_app(
         return {"status": "ok", "service": "runtime-gateway"}
 
     @app.post("/api/generate")
-    def generate(request: Request, payload: dict[str, Any]) -> dict[str, Any]:
+    def generate(request: Request, payload: dict[str, Any]) -> Any:
         authorize(request)
         try:
+            if payload.get("stream", False):
+                return StreamingResponse(
+                    (
+                        json.dumps(chunk, ensure_ascii=False) + "\n"
+                        for chunk in service.stream_generate(payload)
+                    ),
+                    media_type="application/x-ndjson",
+                )
             return service.generate(payload)
         except ValueError as error:
             raise HTTPException(status_code=400, detail=str(error)) from error
 
     @app.post("/v1/chat/completions")
-    def chat(request: Request, payload: dict[str, Any]) -> dict[str, Any]:
+    def chat(request: Request, payload: dict[str, Any]) -> Any:
         authorize(request)
         try:
+            if payload.get("stream", False):
+                def events() -> Iterator[str]:
+                    try:
+                        for chunk in service.stream_chat(payload):
+                            yield f"data: {json.dumps(chunk, ensure_ascii=False)}\n\n"
+                        yield "data: [DONE]\n\n"
+                    except Exception as error:
+                        yield f"data: {json.dumps({'error': str(error)}, ensure_ascii=False)}\n\n"
+
+                return StreamingResponse(
+                    events(),
+                    media_type="text/event-stream",
+                    headers={"Cache-Control": "no-cache"},
+                )
             return service.chat(payload)
         except ValueError as error:
             raise HTTPException(status_code=400, detail=str(error)) from error

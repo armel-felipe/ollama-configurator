@@ -1,4 +1,5 @@
-from collections.abc import Callable
+import json
+from collections.abc import Callable, Iterator
 from typing import Any
 
 import httpx
@@ -141,6 +142,70 @@ class OllamaClient:
         if not isinstance(data, dict):
             raise OllamaResponseError("Ollama chat response is invalid")
         return data
+
+    def generate_stream(
+        self,
+        model: str,
+        prompt: str = "",
+        options: dict[str, Any] | None = None,
+        keep_alive: str | int | None = None,
+        think: bool | str | None = None,
+    ) -> Iterator[dict[str, Any]]:
+        payload: dict[str, Any] = {
+            "model": model,
+            "prompt": prompt,
+            "stream": True,
+            "options": options or {},
+        }
+        if keep_alive is not None:
+            payload["keep_alive"] = keep_alive
+        if think is not None:
+            payload["think"] = think
+        try:
+            with self._client.stream(
+                "POST", "/api/generate", json=payload, timeout=180.0
+            ) as response:
+                response.raise_for_status()
+                for line in response.iter_lines():
+                    if not line:
+                        continue
+                    data = json.loads(line)
+                    if not isinstance(data, dict):
+                        raise OllamaResponseError("Ollama stream chunk is invalid")
+                    yield data
+        except (httpx.HTTPError, ValueError, json.JSONDecodeError) as error:
+            raise OllamaConnectionError("Ollama generate stream failed") from error
+
+    def chat_stream(
+        self,
+        model: str,
+        messages: list[dict[str, Any]],
+        options: dict[str, Any] | None = None,
+        keep_alive: str | int | None = None,
+        think: bool | str | None = None,
+    ) -> Iterator[dict[str, Any]]:
+        payload: dict[str, Any] = {
+            "model": model,
+            "messages": messages,
+            "stream": True,
+            "options": options or {},
+        }
+        if keep_alive is not None:
+            payload["keep_alive"] = keep_alive
+        if think is not None:
+            payload["think"] = think
+        try:
+            with self._client.stream("POST", "/api/chat", json=payload, timeout=180.0) as response:
+                response.raise_for_status()
+                for line in response.iter_lines():
+                    if not line:
+                        continue
+                    data = json.loads(line)
+                    if not isinstance(data, dict):
+                        raise OllamaResponseError("Ollama chat stream chunk is invalid")
+                    yield data
+        except (httpx.HTTPError, ValueError, json.JSONDecodeError) as error:
+            raise OllamaConnectionError("Ollama chat stream failed") from error
 
     def _post_json(self, path: str, payload: dict[str, Any]) -> dict[str, Any]:
         try:

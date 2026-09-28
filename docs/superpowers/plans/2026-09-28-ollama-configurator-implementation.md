@@ -333,6 +333,37 @@ forwarding requests to Ollama.
 - [x] **Step 5: Run the complete project gauntlet and manual OpenCode-compatible HTTP QA.**
 - [x] **Step 6: Mark Task 7B complete and commit `feat: add managed runtime gateway`.**
 
+### Task 7C: Streaming adapter for Ollama and OpenAI clients
+
+**Status:** Complete.
+
+**Goal:** support real incremental responses through the managed gateway so
+OpenCode can render model output while it is generated, without losing the
+saved profile or the distinction between thinking and final content.
+
+**Files:**
+- Create: `tests/integration/test_gateway_streaming.py`
+- Modify: `backend/ollama/client.py`
+- Modify: `backend/gateway_service.py`
+- Modify: `backend/gateway.py`
+- Modify: `tests/unit/test_gateway_service.py`
+- Modify: `docs/api-contract.md`
+- Modify: `docs/security.md`
+
+**Interfaces:**
+- `POST /api/generate` with `stream=true` returns Ollama NDJSON chunks.
+- `POST /v1/chat/completions` with `stream=true` returns OpenAI SSE chunks and a final `[DONE]` marker.
+- Saved explicit values still override client values in streaming requests.
+- `think=false` is forwarded on the initial Ollama request and no thinking delta is emitted.
+- Connection failures and mid-stream failures terminate with an explicit error event/log.
+
+- [x] **Step 1: Write failing tests for Ollama NDJSON streaming, OpenAI SSE conversion, profile injection, `think=false`, and `[DONE]`.**
+- [x] **Step 2: Run focused tests and verify the expected failures.**
+- [x] **Step 3: Implement streaming methods in the Ollama client and gateway service.**
+- [x] **Step 4: Implement NDJSON/SSE HTTP responses and stream error handling.**
+- [x] **Step 5: Run the complete project gauntlet and test the real Gemma4 through the gateway.**
+- [x] **Step 6: Verify OpenCode-compatible streaming and commit `feat: enable gateway streaming`.**
+
 ### Task 8: Server settings abstraction and macOS adapter
 
 **PRD coverage:** Sections 15–20. Server settings are global, visible before
