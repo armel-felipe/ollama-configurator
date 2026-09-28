@@ -28,3 +28,13 @@ Correção implantada:
 
 A limitação permanece documentada: uma sessão independente iniciada por
 `ollama run` não herda o perfil da aplicação, pois `think` é por requisição.
+
+## Runtime Gateway — 7B concluído
+
+O gateway é a porta de entrada compatível com Ollama e OpenAI para clientes como
+OpenCode. Por padrão ele fica somente em `127.0.0.1:11435`; para uso via
+Tailscale, pode escutar explicitamente no IP da interface Tailscale e exige uma
+chave de acesso.
+
+QA real concluído: `100.87.71.48:11435` respondeu pelo Tailscale, uma chamada
+OpenAI-compatible chegou ao Gemma4 e o perfil salvo continuou prevalecendo.

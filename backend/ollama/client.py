@@ -114,6 +114,34 @@ class OllamaClient:
             raise OllamaResponseError("Ollama generate response is invalid")
         return data
 
+    def chat(
+        self,
+        model: str,
+        messages: list[dict[str, Any]],
+        options: dict[str, Any] | None = None,
+        keep_alive: str | int | None = None,
+        think: bool | str | None = None,
+    ) -> dict[str, Any]:
+        payload: dict[str, Any] = {
+            "model": model,
+            "messages": messages,
+            "stream": False,
+            "options": options or {},
+        }
+        if keep_alive is not None:
+            payload["keep_alive"] = keep_alive
+        if think is not None:
+            payload["think"] = think
+        try:
+            response = self._client.post("/api/chat", json=payload, timeout=180.0)
+            response.raise_for_status()
+            data = response.json()
+        except (httpx.HTTPError, ValueError) as error:
+            raise OllamaConnectionError("Ollama chat request failed") from error
+        if not isinstance(data, dict):
+            raise OllamaResponseError("Ollama chat response is invalid")
+        return data
+
     def _post_json(self, path: str, payload: dict[str, Any]) -> dict[str, Any]:
         try:
             response = self._client.post(path, json=payload)

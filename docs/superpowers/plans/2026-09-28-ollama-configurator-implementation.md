@@ -299,6 +299,40 @@ saved state or runner metadata.
 - [x] **Step 7: Mark Task 7A complete only after the inference acceptance gate passes.**
 - [x] **Step 8: Commit `feat: add verified in-app inference testing`.**
 
+### Task 7B: Managed runtime gateway for Ollama and OpenAI clients
+
+**Status:** Complete.
+
+**Goal:** make the saved profile effective for OpenCode and other clients by
+providing one managed local entry point that injects model settings before
+forwarding requests to Ollama.
+
+**Files:**
+- Create: `backend/gateway.py`
+- Create: `backend/gateway_service.py`
+- Create: `tests/unit/test_gateway_service.py`
+- Create: `tests/integration/test_gateway_routes.py`
+- Modify: `backend/ollama/client.py`
+- Modify: `docs/api-contract.md`
+- Modify: `docs/development-setup.md`
+- Modify: `README.md`
+- Modify: `docs/security.md`
+
+**Interfaces:**
+- `POST /api/generate` on the gateway forwards to Ollama with the saved profile merged into the request.
+- `POST /v1/chat/completions` accepts the OpenAI chat shape and forwards it using the saved model profile.
+- `GET /api/tags`, `GET /api/version`, `POST /api/show`, and `GET /api/ps` provide compatibility/diagnostic pass-throughs.
+- Default listener is `127.0.0.1:11435`; Tailscale exposure requires an explicit bind address and `OLLAMA_GATEWAY_API_KEY`.
+- Explicit saved values override client-provided values; Default means the client/Ollama default remains available.
+- Streaming is rejected clearly until a token-streaming adapter is implemented; non-streaming requests are supported and verified.
+
+- [x] **Step 1: Write failing tests for profile injection, Default semantics, Ollama-compatible generate, OpenAI-compatible chat, and API-key protection.**
+- [x] **Step 2: Run focused tests and verify the expected failures.**
+- [x] **Step 3: Implement the gateway service and Ollama/OpenAI routes.**
+- [x] **Step 4: Add local default binding, explicit Tailscale binding guidance, and API-key enforcement.**
+- [x] **Step 5: Run the complete project gauntlet and manual OpenCode-compatible HTTP QA.**
+- [x] **Step 6: Mark Task 7B complete and commit `feat: add managed runtime gateway`.**
+
 ### Task 8: Server settings abstraction and macOS adapter
 
 **PRD coverage:** Sections 15–20. Server settings are global, visible before
