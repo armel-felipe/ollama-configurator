@@ -1,12 +1,15 @@
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, Protocol
 
-from backend.ollama.client import OllamaClient
 from backend.persistence.store import ConfigStore
 
 
+class RuntimeClient(Protocol):
+    def list_running_models(self) -> list[dict[str, Any]]: ...
+
+
 class RuntimeProfileService:
-    def __init__(self, store: ConfigStore, client: OllamaClient) -> None:
+    def __init__(self, store: ConfigStore, client: RuntimeClient) -> None:
         self.store = store
         self.client = client
 

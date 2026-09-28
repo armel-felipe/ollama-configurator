@@ -290,14 +290,14 @@ saved state or runner metadata.
 - `think=true` or a supported named level is verified by the model response when the model emits thinking.
 - The application does not claim to control an unrelated interactive `ollama run` session; that limitation is visible in the UI.
 
-- [ ] **Step 1: Write failing tests for inference with `think=false`, `think=true`, named levels, profile merging, and leaked thinking tags.**
-- [ ] **Step 2: Run focused backend/frontend tests and verify the expected failures.**
-- [ ] **Step 3: Implement the inference service and route using the saved profile on every request.**
-- [ ] **Step 4: Implement the panel with separate thinking/final response, requested/observed state, loading, error, and limitation messaging.**
-- [ ] **Step 5: Run the exact Gemma4 prompt test and verify `think=false` produces no thinking output.**
-- [ ] **Step 6: Run the complete project gauntlet and manual browser QA.**
-- [ ] **Step 7: Mark Task 7A complete only after the inference acceptance gate passes.**
-- [ ] **Step 8: Commit `feat: add verified in-app inference testing`.**
+- [x] **Step 1: Write failing tests for inference with `think=false`, `think=true`, named levels, profile merging, and leaked thinking tags.**
+- [x] **Step 2: Run focused backend/frontend tests and verify the expected failures.**
+- [x] **Step 3: Implement the inference service and route using the saved profile on every request.**
+- [x] **Step 4: Implement the panel with separate thinking/final response, requested/observed state, loading, error, and limitation messaging.**
+- [x] **Step 5: Run the exact Gemma4 prompt test and verify `think=false` produces no thinking output.**
+- [x] **Step 6: Run the complete project gauntlet and manual browser QA.**
+- [x] **Step 7: Mark Task 7A complete only after the inference acceptance gate passes.**
+- [x] **Step 8: Commit `feat: add verified in-app inference testing`.**
 
 ### Task 8: Server settings abstraction and macOS adapter
 

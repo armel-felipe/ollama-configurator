@@ -62,6 +62,28 @@ export async function applyModelSettings(modelId: string): Promise<unknown> {
   return response.json();
 }
 
+export type InferenceTestResult = {
+  model: string;
+  requested_profile: Record<string, number | string | boolean>;
+  thinking?: string | null;
+  thinking_received: boolean;
+  response: string;
+  runtime: RuntimeStatus;
+};
+
+export async function runInferenceTest(modelId: string, prompt: string): Promise<InferenceTestResult> {
+  const response = await fetch(`/api/models/${encodeURIComponent(modelId)}/inference-test`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt }),
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => null) as { detail?: string } | null;
+    throw new Error(body?.detail ?? "Não foi possível executar o teste de inferência");
+  }
+  return response.json() as Promise<InferenceTestResult>;
+}
+
 export async function resetAllModels(): Promise<void> {
   const response = await fetch("/api/reset/models", { method: "POST" });
   if (!response.ok) throw new Error("Não foi possível restaurar os modelos");

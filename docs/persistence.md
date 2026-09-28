@@ -27,3 +27,9 @@ de reasoning. Durante a aplicação, o runner é descarregado e recarregado para
 que mudanças de contexto sejam observáveis em `/api/ps`; parâmetros que o
 Ollama não publica nesse endpoint permanecem identificados como perfil enviado,
 sem serem apresentados como uma medição falsa do runtime.
+
+O painel de teste de inferência reutiliza exatamente esse perfil persistido em
+cada requisição. O resultado registra o perfil solicitado, o thinking efetivamente
+recebido, a resposta final e o runtime observado. Isso permite validar o efeito
+real de `think=false` sem confundir a aplicação com uma sessão interativa externa
+de `ollama run`.

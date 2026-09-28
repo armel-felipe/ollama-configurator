@@ -10,6 +10,7 @@ O contrato HTTP usa prefixo `/api` e é servido apenas no endereço local.
 - `DELETE /api/models/{model_id}/settings/{parameter}` remove um override específico.
 - `POST /api/models/{model_id}/apply` descarrega e recarrega o runner com o perfil completo e retorna o runtime observado.
 - `GET /api/models/{model_id}/runtime` consulta o modelo carregado em `/api/ps` e retorna contexto, processador e perfil aplicado.
+- `POST /api/models/{model_id}/inference-test` recebe `{ "prompt": string }`, envia o prompt com o perfil salvo e retorna resposta final, thinking recebido, perfil solicitado e runtime observado.
 
 Parâmetros básicos atuais: `num_ctx`, `temperature`, `num_predict` e
 `keep_alive`. Thinking é um controle adicional validado contra os valores
@@ -18,3 +19,16 @@ não é convertido para `0` ou `false`.
 
 Configurações e endpoints adicionais serão adicionados junto às tarefas que os
 implementam, sempre com schemas explícitos e erros estruturados.
+
+## Verificação de inferência
+
+O endpoint `inference-test` é o caminho verificável para confirmar o comportamento
+do perfil dentro da aplicação. `think` é enviado como campo de nível superior da
+requisição `/api/generate`, preservando `false`, `true` ou o nível nomeado salvo.
+Se o modelo devolver thinking em um campo separado, a resposta o identifica em
+`thinking`; marcadores `<think>...</think>` vazados no texto final são separados
+antes da apresentação ao usuário.
+
+Uma sessão independente aberta com `ollama run` não é controlada por este endpoint
+e pode continuar usando o default daquela sessão. A interface informa essa
+limitação explicitamente.

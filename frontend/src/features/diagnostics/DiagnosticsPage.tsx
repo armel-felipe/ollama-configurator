@@ -4,6 +4,7 @@ import {
   applyModelSettings,
   getModelSettings,
   getModelRuntime,
+  runInferenceTest,
   resetAllModels,
   resetModel,
   saveModelSettings,
@@ -12,6 +13,7 @@ import { ErrorState, LoadingState } from "../shared/StatusState";
 import { ModelsList } from "../models/ModelsList";
 import { ModelSettingsPage } from "../models/ModelSettingsPage";
 import { ResetControls } from "../settings/ResetControls";
+import { InferenceTestPanel } from "../models/InferenceTestPanel";
 
 type Props = { loadDiagnostics: () => Promise<DiagnosticsSnapshot> };
 
@@ -43,13 +45,19 @@ export function DiagnosticsPage({ loadDiagnostics }: Props) {
       </section>
       <ModelsList models={data.models} selectedModel={selectedModel} onSelect={setSelectedModel} />
       {selectedModel ? (
-        <ModelSettingsPage
-          modelId={selectedModel}
-          loadSettings={() => getModelSettings(selectedModel)}
-          saveSettings={(options) => saveModelSettings(selectedModel, options)}
-          applySettings={() => applyModelSettings(selectedModel)}
-          loadRuntime={() => getModelRuntime(selectedModel)}
-        />
+        <>
+          <ModelSettingsPage
+            modelId={selectedModel}
+            loadSettings={() => getModelSettings(selectedModel)}
+            saveSettings={(options) => saveModelSettings(selectedModel, options)}
+            applySettings={() => applyModelSettings(selectedModel)}
+            loadRuntime={() => getModelRuntime(selectedModel)}
+          />
+          <InferenceTestPanel
+            modelId={selectedModel}
+            runInference={(prompt) => runInferenceTest(selectedModel, prompt)}
+          />
+        </>
       ) : <p>Selecione um modelo para configurar.</p>}
       <ResetControls
         selectedModel={selectedModel}
