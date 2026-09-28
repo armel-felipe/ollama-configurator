@@ -262,12 +262,21 @@
 
 ### Task 8: Server settings abstraction and macOS adapter
 
+**PRD coverage:** Sections 15–20. Server settings are global, visible before
+model selection, persistent across Ollama close/logout/login/reboot, and are
+applied through one restart/reconciliation path regardless of whether the
+request originated in the server screen, model screen, startup bootstrap, or
+an explicit restart action.
+
 **Files:**
 - Create: `backend/os_adapters/base.py`
 - Create: `backend/os_adapters/macos.py`
 - Create: `backend/server_settings/catalog.py`
 - Create: `backend/server_settings/service.py`
+- Create: `backend/server_settings/restart_coordinator.py`
 - Create: `backend/api/server_settings_routes.py`
+- Create: `frontend/src/features/server/ServerSettingsPage.tsx`
+- Create: `frontend/src/features/server/serverSettings.test.tsx`
 - Create: `tests/unit/test_server_settings.py`
 - Create: `tests/unit/test_macos_adapter.py`
 - Create: `tests/integration/test_server_settings_routes.py`
@@ -281,18 +290,24 @@
 - `SystemAdapter.restart_ollama() -> RestartResult`.
 - `SystemAdapter.open_logs() -> None`.
 - `ServerSettingsService.get()`, `.update(patch)`, `.reset()`, `.restart()`.
+- `RestartCoordinator.restart_and_reapply_profiles() -> RestartResult`.
+- Server catalog includes `OLLAMA_KV_CACHE_TYPE`, `OLLAMA_FLASH_ATTENTION`, `OLLAMA_CONTEXT_LENGTH`, `OLLAMA_KEEP_ALIVE`, `OLLAMA_NUM_PARALLEL`, `OLLAMA_MAX_LOADED_MODELS`, `OLLAMA_MAX_QUEUE`, `OLLAMA_GPU_OVERHEAD`, scheduler and integrated-GPU settings when supported.
+- `OLLAMA_KV_CACHE_TYPE` is global; the UI exposes its effective value before model configuration, marks changes as restart-pending, restarts Ollama, reapplies saved model profiles, and verifies the post-restart state.
 - `GET /api/server/settings`.
 - `PUT /api/server/settings`.
 - `POST /api/server/settings/reset`.
 - `POST /api/server/restart`.
+- `GET /api/server/runtime` returns server settings, restart-pending state, API availability, and model reapplication results.
 
 - [ ] **Step 1: Write adapter contract tests with a fake process/environment boundary**
 - [ ] **Step 2: Write macOS persistence tests for install, update, remove, restart, and permission failure**
 - [ ] **Step 3: Run focused tests and verify failure**
 - [ ] **Step 4: Implement the shared adapter contract and macOS persistence with a managed per-user LaunchAgent that reapplies configured environment values at login and a controlled Ollama restart; reset removes the managed LaunchAgent and its overrides**
-- [ ] **Step 5: Implement capability-aware server setting validation and explicit reset-as-removal**
-- [ ] **Step 6: Add API routes and UI controls with restart confirmation**
-- [ ] **Step 7: Validate persistence across Ollama restart and reboot on macOS**
+- [ ] **Step 5: Implement capability-aware server setting validation, including KV cache values supported by the installed Ollama, and explicit reset-as-removal**
+- [ ] **Step 6: Implement `RestartCoordinator` so every restart path reapplies server settings first, then saved model profiles, then verifies runtime; no caller may invoke a raw restart independently**
+- [ ] **Step 7: Add server UI controls visible before model selection, restart confirmation, pending/applied/error states, and post-restart diagnostics**
+- [ ] **Step 8: Validate KV cache, global context, Flash Attention, persistence across Ollama restart/logout/login/reboot, and model-profile reapplication on macOS**
+- [ ] **Step 9: Commit `feat: add persistent macOS server settings`**
 - [ ] **Step 8: Commit `feat: add persistent macOS server settings`**
 
 ### Task 9: Windows adapter and cross-platform server settings
