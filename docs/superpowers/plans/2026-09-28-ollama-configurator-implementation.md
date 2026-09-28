@@ -258,7 +258,7 @@
 - [x] **Step 4: Implement apply-as-unload-then-reload and runtime status routes; retain the last applied profile for fields Ollama does not expose in `/api/ps`.**
 - [x] **Step 5: Implement presets, free input, thinking controls, native-default labels, dirty/saved/applied states, and runtime status UI.**
 - [x] **Step 6: Run focused tests, then the complete project gauntlet and manual browser QA against the local Ollama models.**
-- [ ] **Step 7: Commit `feat: add verified model runtime profiles and thinking controls`.**
+- [x] **Step 7: Commit `feat: add verified model runtime profiles and thinking controls`.**
 
 ### Task 8: Server settings abstraction and macOS adapter
 
