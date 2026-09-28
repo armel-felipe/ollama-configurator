@@ -364,6 +364,32 @@ saved profile or the distinction between thinking and final content.
 - [x] **Step 5: Run the complete project gauntlet and test the real Gemma4 through the gateway.**
 - [x] **Step 6: Verify OpenCode-compatible streaming and commit `feat: enable gateway streaming`.**
 
+### Task 7D: Native Ollama chat compatibility
+
+**Status:** Complete.
+
+**Goal:** make `OLLAMA_HOST=http://host:11435 ollama run model` pass through
+the managed profile by implementing the native `/api/chat` contract.
+
+**Files:**
+- Create: `tests/integration/test_gateway_ollama_chat.py`
+- Modify: `backend/gateway_service.py`
+- Modify: `backend/gateway.py`
+- Modify: `docs/api-contract.md`
+- Modify: `docs/development-setup.md`
+
+**Interfaces:**
+- `POST /api/chat` returns the native Ollama chat response for `stream=false`.
+- `POST /api/chat` returns native Ollama NDJSON chunks for `stream=true`.
+- Saved model settings are injected into both modes, including `think=false`.
+- `OLLAMA_HOST` can point Ollama CLI and compatible clients to the gateway port.
+
+- [x] **Step 1: Write failing tests for native chat response, native chat streaming, and saved profile injection.**
+- [x] **Step 2: Run focused tests and verify the expected failures.**
+- [x] **Step 3: Implement the native chat route and profile-aware service methods.**
+- [x] **Step 4: Run the complete project gauntlet and test through `OLLAMA_HOST`.**
+- [x] **Step 5: Mark Task 7D complete and commit `feat: support native Ollama chat gateway`.**
+
 ### Task 8: Server settings abstraction and macOS adapter
 
 **PRD coverage:** Sections 15–20. Server settings are global, visible before

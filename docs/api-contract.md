@@ -38,6 +38,7 @@ limitação explicitamente.
 O gateway é executado separadamente em `127.0.0.1:11435` por padrão:
 
 - `POST /api/generate` mantém o formato Ollama e injeta o perfil salvo do modelo.
+- `POST /api/chat` mantém o formato nativo de chat do Ollama e injeta o perfil salvo do modelo.
 - `POST /v1/chat/completions` oferece compatibilidade OpenAI para clientes como OpenCode.
 - `GET /api/tags`, `GET /api/version`, `POST /api/show` e `GET /api/ps` são pass-throughs autenticáveis.
 
@@ -47,3 +48,7 @@ ou Ollama decidir. Com `stream=true`, `/api/generate` retorna NDJSON e
 `/v1/chat/completions` retorna SSE com chunks OpenAI e o marcador final `[DONE]`.
 Thinking recebido durante streaming é exposto como `reasoning_content`; quando o
 perfil define `think=false`, nenhum delta de thinking é emitido.
+
+Clientes Ollama podem apontar `OLLAMA_HOST` para a gateway, por exemplo
+`http://127.0.0.1:11435` ou `http://<IP-TAILSCALE>:11435`. Isso faz `ollama run`
+usar `/api/chat` da gateway, em vez de acessar diretamente a porta `11434`.

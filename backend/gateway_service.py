@@ -114,6 +114,34 @@ class GatewayService:
             keep_alive=keep_alive,
         )
 
+    def chat_ollama(self, payload: dict[str, Any]) -> dict[str, Any]:
+        model, options, think, keep_alive = self._profile(payload)
+        messages = payload.get("messages")
+        if not isinstance(messages, list) or not all(isinstance(item, dict) for item in messages):
+            raise ValueError("messages must be a list of objects")
+        if payload.get("stream", False):
+            raise ValueError("use stream_chat_ollama for streaming")
+        return self.client.chat(
+            model,
+            messages,
+            options=options,
+            think=think,
+            keep_alive=keep_alive,
+        )
+
+    def stream_chat_ollama(self, payload: dict[str, Any]) -> Iterator[dict[str, Any]]:
+        model, options, think, keep_alive = self._profile(payload)
+        messages = payload.get("messages")
+        if not isinstance(messages, list) or not all(isinstance(item, dict) for item in messages):
+            raise ValueError("messages must be a list of objects")
+        yield from self.client.chat_stream(
+            model,
+            messages,
+            options=options,
+            think=think,
+            keep_alive=keep_alive,
+        )
+
     def stream_chat(self, payload: dict[str, Any]) -> Iterator[dict[str, Any]]:
         model, options, think, keep_alive = self._profile(payload)
         messages = payload.get("messages")

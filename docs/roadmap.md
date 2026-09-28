@@ -45,3 +45,12 @@ O gateway agora adapta o fluxo incremental do Ollama para NDJSON e SSE
 compatível com OpenCode, mantendo o perfil salvo — inclusive `think=false` — em
 cada requisição. O Gemma4 foi validado em streaming real com múltiplos chunks e
 marcador `[DONE]`.
+
+## Compatibilidade nativa de clientes Ollama — 7D concluído
+
+Adicionado `/api/chat` à gateway para que `OLLAMA_HOST` possa
+apontar para `11435` e clientes como `ollama run` também passem pelo perfil
+salvo da aplicação.
+
+QA de contrato concluído: `/api/chat` normal e streaming NDJSON usam o perfil
+salvo e preservam `think=false`.

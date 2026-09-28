@@ -27,3 +27,12 @@ OLLAMA_GATEWAY_API_KEY='defina-uma-chave-forte' \
 
 No cliente remoto, use `http://<IP-TAILSCALE-DO-HOST>:11435/v1` e a mesma chave.
 Ollama continua em `127.0.0.1:11434`; não exponha diretamente essa porta.
+
+Para o cliente Ollama nativo, configure:
+
+```bash
+OLLAMA_HOST=http://<IP-TAILSCALE-DO-HOST>:11435 ollama run gemma4:26b-mlx
+```
+
+Nesse modo, `ollama run` usa o endpoint `/api/chat` da gateway e recebe o perfil
+salvo pela aplicação, inclusive `think=false` e `num_ctx`.

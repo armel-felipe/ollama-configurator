@@ -32,6 +32,10 @@ def create_gateway_app(
         if supplied != api_key:
             raise HTTPException(status_code=401, detail="gateway API key is required")
 
+    @app.api_route("/", methods=["GET", "HEAD"])
+    def ollama_probe() -> str:
+        return "Ollama is running"
+
     @app.get("/health")
     def health() -> dict[str, str]:
         return {"status": "ok", "service": "runtime-gateway"}
@@ -71,6 +75,22 @@ def create_gateway_app(
                     headers={"Cache-Control": "no-cache"},
                 )
             return service.chat(payload)
+        except ValueError as error:
+            raise HTTPException(status_code=400, detail=str(error)) from error
+
+    @app.post("/api/chat")
+    def ollama_chat(request: Request, payload: dict[str, Any]) -> Any:
+        authorize(request)
+        try:
+            if payload.get("stream", False):
+                return StreamingResponse(
+                    (
+                        json.dumps(chunk, ensure_ascii=False) + "\n"
+                        for chunk in service.stream_chat_ollama(payload)
+                    ),
+                    media_type="application/x-ndjson",
+                )
+            return service.chat_ollama(payload)
         except ValueError as error:
             raise HTTPException(status_code=400, detail=str(error)) from error
 
