@@ -58,8 +58,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .brand strong { font-weight: 750; }
 .brand-mark { display: grid; place-items: center; width: 27px; height: 27px; border-radius: 8px; background: var(--text); color: var(--surface-raised); font-size: 13px; font-weight: 800; }
 .topbar-actions { display: flex; align-items: center; gap: 18px; }
-.connection-pill { color: var(--text-muted); font-size: 12px; }
-.connection-pill span { color: var(--success); font-size: 10px; }
 .theme-toggle { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 11px; background: var(--surface-raised); color: var(--text-muted); cursor: pointer; font-size: 12px; }
 .theme-toggle:hover { color: var(--text); border-color: var(--border-strong); background: var(--surface-subtle); }
 .app-body { display: grid; grid-template-columns: 218px minmax(0, 1fr); min-height: calc(100vh - 68px); }
@@ -189,7 +187,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 
 @media (max-width: 720px) {
   .topbar { height: auto; min-height: 64px; padding: 14px 18px; gap: 14px; }
-  .connection-pill { display: none; }
   .app-body { display: block; }
   .workspace-nav { flex-direction: row; align-items: center; overflow-x: auto; padding: 8px 12px; border-right: 0; border-bottom: 1px solid var(--border); }
   .nav-caption, .nav-footer { display: none; }

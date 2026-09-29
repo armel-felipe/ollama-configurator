@@ -27,7 +27,6 @@ export function AppShell({ children, selectedSection, onSectionChange }: Props) 
           <span>Ollama <strong>Configurator</strong></span>
         </a>
         <div className="topbar-actions">
-          <span className="connection-pill"><span aria-hidden="true">●</span> Ollama conectado</span>
           <button className="theme-toggle" type="button" onClick={toggleTheme} aria-label={`Alternar para tema ${targetTheme}`}>
             <span aria-hidden="true">{theme === "light" ? "☾" : "☀"}</span>
             Tema {targetTheme}
