@@ -1,22 +1,35 @@
-import { render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 
+vi.mock("./features/diagnostics/DiagnosticsPage", () => ({
+  DiagnosticsPage: () => (
+    <>
+      <h1>Configure seu runtime</h1>
+      <div id="models-section" />
+      <section id="server-section" />
+      <section id="diagnostics-section" />
+    </>
+  ),
+}));
+
 describe("App", () => {
+  afterEach(() => cleanup());
+
   it("renders the application shell", () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        ollama: { available: true, version: "0.5.7" },
-        hardware: { os: "macos", architecture: "arm64" },
-        models: [],
-      }),
-    }));
     render(<App />);
 
-    return waitFor(() => {
-      expect(screen.getByRole("heading", { name: /configure seu runtime/i })).toBeInTheDocument();
-      expect(screen.getByRole("navigation", { name: /workspace/i })).toBeInTheDocument();
-    });
+    expect(screen.getByRole("heading", { name: /configure seu runtime/i })).toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: /workspace/i })).toBeInTheDocument();
+  });
+
+  it("updates the active section when a workspace area is selected", () => {
+    render(<App />);
+
+    expect(screen.getByRole("link", { name: "Modelos" })).toHaveAttribute("aria-current", "page");
+    fireEvent.click(screen.getByRole("link", { name: "Servidor" }));
+
+    expect(screen.getByRole("link", { name: "Servidor" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Modelos" })).not.toHaveAttribute("aria-current");
   });
 });
