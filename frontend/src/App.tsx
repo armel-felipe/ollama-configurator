@@ -1,6 +1,14 @@
 import { getDiagnostics } from "./api/client";
 import { DiagnosticsPage } from "./features/diagnostics/DiagnosticsPage";
+import { AppShell } from "./features/shell/AppShell";
+import { ThemeProvider } from "./features/shell/ThemeProvider";
 
 export default function App() {
-  return <DiagnosticsPage loadDiagnostics={getDiagnostics} />;
+  return (
+    <ThemeProvider>
+      <AppShell selectedSection="models" onSectionChange={() => undefined}>
+        <DiagnosticsPage loadDiagnostics={getDiagnostics} />
+      </AppShell>
+    </ThemeProvider>
+  );
 }
