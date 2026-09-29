@@ -142,7 +142,7 @@ export function ModelSettingsPage({ modelId, loadSettings, saveSettings, applySe
   };
 
   return (
-    <section className="profile-editor" aria-labelledby="settings-heading">
+    <section className="profile-editor" id="model-profile-section" aria-labelledby="settings-heading">
       <div className="profile-header">
         <div>
           <div className="section-kicker">Perfil do modelo</div>

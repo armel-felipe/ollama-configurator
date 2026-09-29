@@ -23,6 +23,8 @@ import { ModelSettingsPage } from "../models/ModelSettingsPage";
 import { ResetControls } from "../settings/ResetControls";
 import { GatewayControls } from "../gateway/GatewayControls";
 import { ServerSettingsPage } from "../server/ServerSettingsPage";
+import { OperationalStatusSummary } from "../status/OperationalStatusSummary";
+import { deriveOperationalStatus, type OperationalAction } from "../status/operationalStatus";
 
 type Props = { loadDiagnostics: () => Promise<DiagnosticsSnapshot> };
 
@@ -30,6 +32,11 @@ export function DiagnosticsPage({ loadDiagnostics }: Props) {
   const [data, setData] = useState<DiagnosticsSnapshot | null>(null);
   const [selectedModel, setSelectedModel] = useState<string | undefined>();
   const [error, setError] = useState<string | null>(null);
+  const [serverView, setServerView] = useState<{ loaded: boolean; available: boolean; pendingRestart: boolean; dirty: boolean; error: string | null }>({ loaded: false, available: false, pendingRestart: false, dirty: false, error: null });
+  const [gatewayView, setGatewayView] = useState<{ status: Awaited<ReturnType<typeof getGatewayStatus>> | null; error: string | null }>({ status: null, error: null });
+  const [modelView, setModelView] = useState<{ selected: boolean; dirty: boolean; runtime: Awaited<ReturnType<typeof getModelRuntime>> | null; error: string | null }>({ selected: false, dirty: false, runtime: null, error: null });
+  const handleGatewayState = useCallback((status: Awaited<ReturnType<typeof getGatewayStatus>>, gatewayError: string | null) => setGatewayView({ status, error: gatewayError }), []);
+  const handleModelState = useCallback((next: { selected: boolean; dirty: boolean; runtime: Awaited<ReturnType<typeof getModelRuntime>> | null; error: string | null }) => setModelView(next), []);
   const load = useCallback(() => {
     setError(null);
     void loadDiagnostics().then(setData).catch((reason: unknown) => {
@@ -43,9 +50,32 @@ export function DiagnosticsPage({ loadDiagnostics }: Props) {
   if (!data) return <LoadingState />;
 
   const memoryBytes = data.hardware.memoryBytes ?? data.hardware.memory_bytes;
+  const scrollAction = (label: string, target: OperationalAction["target"], id: string): OperationalAction => ({
+    label,
+    target,
+    run: () => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" }),
+  });
+  const operationalStatus = deriveOperationalStatus({
+    ollamaAvailable: data.ollama.available,
+    gateway: gatewayView.status,
+    gatewayError: gatewayView.error,
+    server: serverView.loaded ? { available: serverView.available, pending_restart: serverView.pendingRestart } : null,
+    serverDirty: serverView.dirty,
+    serverError: serverView.error,
+    runtime: modelView.runtime,
+    runtimeError: modelView.error,
+    actions: {
+      startGateway: scrollAction("Iniciar gateway", "gateway", "gateway-section"),
+      retryGateway: scrollAction("Revisar gateway", "gateway", "gateway-section"),
+      saveServer: scrollAction("Salvar configurações", "server", "server-section"),
+      applyServer: scrollAction("Aplicar no Ollama", "server", "server-section"),
+      retryServer: scrollAction("Recarregar configurações", "server", "server-section"),
+      applyModel: scrollAction("Reaplicar perfil", "model", "model-profile-section"),
+    },
+  });
   return (
     <div className="diagnostics-page">
-      <div className="page-heading">
+      <div className="page-heading" id="models-section">
         <div>
           <div className="section-kicker">Modelos</div>
           <h1>Configure seu runtime</h1>
@@ -53,12 +83,14 @@ export function DiagnosticsPage({ loadDiagnostics }: Props) {
         </div>
         <div className="ollama-status"><span className="status-dot" aria-hidden="true" /> Ollama {data.ollama.available ? data.ollama.version : "indisponível"}</div>
       </div>
-      <ServerSettingsPage load={getServerSettings} update={saveServerSettings} restart={restartServer} reset={resetServerSettings} restartApplication={restartApplication} />
+      <OperationalStatusSummary status={operationalStatus} />
+      <ServerSettingsPage load={getServerSettings} update={saveServerSettings} restart={restartServer} reset={resetServerSettings} restartApplication={restartApplication} onStateChange={setServerView} />
       <GatewayControls
         getStatus={getGatewayStatus}
         start={startGateway}
         stop={stopGateway}
         restart={restartGateway}
+        onStateChange={handleGatewayState}
       />
       <ModelWorkspace models={data.models} selectedModel={selectedModel} onSelect={setSelectedModel}>
         {selectedModel ? (
@@ -68,10 +100,11 @@ export function DiagnosticsPage({ loadDiagnostics }: Props) {
             saveSettings={(options) => saveModelSettings(selectedModel, options)}
             applySettings={() => applyModelSettings(selectedModel)}
             loadRuntime={() => getModelRuntime(selectedModel)}
+            onStateChange={handleModelState}
           />
         ) : null}
       </ModelWorkspace>
-      <section className="system-summary" aria-labelledby="system-heading">
+      <section className="system-summary" id="diagnostics-section" aria-labelledby="system-heading">
         <div>
           <div className="section-kicker">Sistema</div>
           <h2 id="system-heading">Ambiente local</h2>

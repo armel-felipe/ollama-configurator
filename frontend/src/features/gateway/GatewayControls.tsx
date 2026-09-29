@@ -62,7 +62,7 @@ export function GatewayControls({ getStatus, start, stop, restart, onStateChange
 
   const unmanaged = status.state === "external";
   return (
-    <section aria-labelledby="gateway-heading">
+    <section id="gateway-section" aria-labelledby="gateway-heading">
       <h2 id="gateway-heading">Runtime Gateway</h2>
       <p>Status: <strong>{statusLabel(status.state)}</strong></p>
       <p>Porta: {status.port}</p>
