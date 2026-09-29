@@ -6,7 +6,6 @@ import {
   getModelRuntime,
   getGatewayStatus,
   restartGateway,
-  runInferenceTest,
   resetAllModels,
   resetModel,
   saveModelSettings,
@@ -14,10 +13,9 @@ import {
   stopGateway,
 } from "../../api/client";
 import { ErrorState, LoadingState } from "../shared/StatusState";
-import { ModelsList } from "../models/ModelsList";
+import { ModelWorkspace } from "../models/ModelWorkspace";
 import { ModelSettingsPage } from "../models/ModelSettingsPage";
 import { ResetControls } from "../settings/ResetControls";
-import { InferenceTestPanel } from "../models/InferenceTestPanel";
 import { GatewayControls } from "../gateway/GatewayControls";
 
 type Props = { loadDiagnostics: () => Promise<DiagnosticsSnapshot> };
@@ -40,23 +38,23 @@ export function DiagnosticsPage({ loadDiagnostics }: Props) {
 
   const memoryBytes = data.hardware.memoryBytes ?? data.hardware.memory_bytes;
   return (
-    <main>
-      <h1>Ollama Configurator</h1>
-      <p>Ollama {data.ollama.available ? data.ollama.version : "indisponível"}</p>
-      <section aria-labelledby="hardware-heading">
-        <h2 id="hardware-heading">Hardware</h2>
-        <p>{data.hardware.os} · {data.hardware.architecture}</p>
-        {memoryBytes ? <p>{Math.round(memoryBytes / 1024 ** 3)} GB de memória</p> : null}
-      </section>
+    <div className="diagnostics-page">
+      <div className="page-heading">
+        <div>
+          <div className="section-kicker">Modelos</div>
+          <h1>Configure seu runtime</h1>
+          <p>Escolha um modelo e ajuste o perfil que será aplicado ao Ollama.</p>
+        </div>
+        <div className="ollama-status"><span className="status-dot" aria-hidden="true" /> Ollama {data.ollama.available ? data.ollama.version : "indisponível"}</div>
+      </div>
       <GatewayControls
         getStatus={getGatewayStatus}
         start={startGateway}
         stop={stopGateway}
         restart={restartGateway}
       />
-      <ModelsList models={data.models} selectedModel={selectedModel} onSelect={setSelectedModel} />
-      {selectedModel ? (
-        <>
+      <ModelWorkspace models={data.models} selectedModel={selectedModel} onSelect={setSelectedModel}>
+        {selectedModel ? (
           <ModelSettingsPage
             modelId={selectedModel}
             loadSettings={() => getModelSettings(selectedModel)}
@@ -64,17 +62,20 @@ export function DiagnosticsPage({ loadDiagnostics }: Props) {
             applySettings={() => applyModelSettings(selectedModel)}
             loadRuntime={() => getModelRuntime(selectedModel)}
           />
-          <InferenceTestPanel
-            modelId={selectedModel}
-            runInference={(prompt) => runInferenceTest(selectedModel, prompt)}
-          />
-        </>
-      ) : <p>Selecione um modelo para configurar.</p>}
+        ) : null}
+      </ModelWorkspace>
+      <section className="system-summary" aria-labelledby="system-heading">
+        <div>
+          <div className="section-kicker">Sistema</div>
+          <h2 id="system-heading">Ambiente local</h2>
+        </div>
+        <p>{data.hardware.os} · {data.hardware.architecture}{memoryBytes ? ` · ${Math.round(memoryBytes / 1024 ** 3)} GB` : ""}</p>
+      </section>
       <ResetControls
         selectedModel={selectedModel}
         onResetAll={async () => { await resetAllModels(); load(); }}
         onResetModel={async (model) => { await resetModel(model); load(); }}
       />
-    </main>
+    </div>
   );
 }

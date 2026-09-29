@@ -74,6 +74,33 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .nav-footer span:last-child { margin-left: auto; color: var(--text-soft); }
 .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
 .workspace-content { width: min(100%, 1180px); padding: 42px clamp(24px, 5vw, 72px) 80px; margin: 0 auto; }
+.page-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 30px; }
+.page-heading h1 { margin: 5px 0 8px; font-size: clamp(28px, 4vw, 40px); letter-spacing: -.045em; line-height: 1.05; }
+.page-heading p { max-width: 52ch; margin: 0; color: var(--text-muted); font-size: 14px; line-height: 1.55; }
+.ollama-status { display: flex; align-items: center; gap: 8px; padding-top: 7px; color: var(--text-muted); font-size: 12px; white-space: nowrap; }
+.system-summary { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-top: 36px; padding-top: 18px; border-top: 1px solid var(--border); color: var(--text-muted); }
+.system-summary h2 { margin: 5px 0 0; font-size: 14px; }
+.system-summary p { margin: 0; font-size: 12px; }
+.model-workspace { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 32px; align-items: start; }
+.model-sidebar { min-width: 0; }
+.model-main { min-width: 0; }
+.models-list { padding-top: 4px; }
+.section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.section-kicker { color: var(--text-soft); font-size: 10px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+.models-list h2 { margin: 5px 0 0; font-size: 15px; letter-spacing: -.02em; }
+.model-count { display: grid; place-items: center; min-width: 25px; height: 25px; border: 1px solid var(--border); border-radius: 50%; color: var(--text-muted); font-size: 11px; }
+.model-list { display: grid; gap: 4px; padding: 0; margin: 0; list-style: none; }
+.model-row { display: flex; align-items: center; width: 100%; gap: 9px; min-height: 41px; padding: 0 10px; border: 1px solid transparent; border-radius: var(--radius-sm); background: transparent; color: var(--text-muted); cursor: pointer; text-align: left; font-size: 12px; }
+.model-row:hover { background: var(--surface-subtle); color: var(--text); }
+.model-row[aria-pressed="true"] { border-color: var(--border); background: var(--surface-raised); box-shadow: var(--shadow-sm); color: var(--text); font-weight: 700; }
+.model-indicator { width: 7px; height: 7px; flex: 0 0 auto; border: 1px solid var(--text-soft); border-radius: 50%; }
+.model-row[aria-pressed="true"] .model-indicator { border-color: var(--accent); background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.model-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.empty-copy { color: var(--text-muted); font-size: 12px; line-height: 1.6; }
+.workspace-empty { display: grid; place-items: center; min-height: 380px; padding: 36px; border: 1px dashed var(--border-strong); border-radius: var(--radius-lg); text-align: center; }
+.empty-mark { display: grid; place-items: center; width: 48px; height: 48px; margin-bottom: 14px; border-radius: 14px; background: var(--accent-soft); color: var(--accent); font-size: 26px; }
+.workspace-empty h2 { margin: 0 0 7px; font-size: 20px; letter-spacing: -.03em; }
+.workspace-empty p { max-width: 42ch; margin: 0; color: var(--text-muted); font-size: 13px; line-height: 1.6; }
 
 @media (max-width: 720px) {
   .topbar { height: auto; min-height: 64px; padding: 14px 18px; gap: 14px; }
@@ -83,4 +110,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .nav-caption, .nav-footer { display: none; }
   .nav-item { flex: 0 0 auto; min-height: 36px; }
   .workspace-content { padding: 28px 18px 56px; }
+  .page-heading { display: block; margin-bottom: 24px; }
+  .ollama-status { padding-top: 16px; }
+  .model-workspace { grid-template-columns: 1fr; gap: 24px; }
+  .model-sidebar { border-bottom: 1px solid var(--border); padding-bottom: 18px; }
 }

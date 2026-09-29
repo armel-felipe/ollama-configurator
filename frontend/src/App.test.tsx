@@ -15,7 +15,8 @@ describe("App", () => {
     render(<App />);
 
     return waitFor(() => {
-      expect(screen.getByRole("heading", { name: /ollama configurator/i })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: /configure seu runtime/i })).toBeInTheDocument();
+      expect(screen.getByRole("navigation", { name: /workspace/i })).toBeInTheDocument();
     });
   });
 });
