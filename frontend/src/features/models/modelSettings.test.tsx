@@ -138,12 +138,14 @@ describe("ModelSettingsPage", () => {
       applied: true,
       runtime: { loaded: true, context: 16384, applied_options: { num_ctx: 16384 } },
     });
+    const published: Array<{ runtime: boolean; dirty: boolean }> = [];
     render(
       <ModelSettingsPage
         modelId="qwen:latest"
         loadSettings={async () => ({ options: {} })}
         saveSettings={vi.fn().mockResolvedValue({ options: {} })}
         applySettings={apply}
+        onStateChange={(next) => published.push({ runtime: Boolean(next.runtime), dirty: next.dirty })}
       />,
     );
 
@@ -151,6 +153,7 @@ describe("ModelSettingsPage", () => {
     fireEvent.click(screen.getByRole("button", { name: /aplicar/i }));
 
     await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Runtime confirmado: 16K"));
+    expect(published.at(-1)).toMatchObject({ runtime: true, dirty: false });
     expect(apply).toHaveBeenCalledTimes(1);
   });
 

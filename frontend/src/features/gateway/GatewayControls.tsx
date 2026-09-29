@@ -6,6 +6,7 @@ type Props = {
   start: () => Promise<GatewayStatus>;
   stop: () => Promise<GatewayStatus>;
   restart: () => Promise<GatewayStatus>;
+  onStateChange?: (status: GatewayStatus, error: string | null) => void;
 };
 
 function statusLabel(state: GatewayStatus["state"]): string {
@@ -18,16 +19,21 @@ function statusLabel(state: GatewayStatus["state"]): string {
   }[state];
 }
 
-export function GatewayControls({ getStatus, start, stop, restart }: Props) {
+export function GatewayControls({ getStatus, start, stop, restart, onStateChange }: Props) {
   const [status, setStatus] = useState<GatewayStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(() => {
-    void getStatus().then(setStatus).catch((reason: unknown) => {
-      setError(reason instanceof Error ? reason.message : "Falha ao consultar a gateway");
+    void getStatus().then((next) => {
+      setStatus(next);
+      setError(null);
+      onStateChange?.(next, null);
+    }).catch((reason: unknown) => {
+      const message = reason instanceof Error ? reason.message : "Falha ao consultar a gateway";
+      setError(message);
     });
-  }, [getStatus]);
+  }, [getStatus, onStateChange]);
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
@@ -40,9 +46,13 @@ export function GatewayControls({ getStatus, start, stop, restart }: Props) {
     setBusy(true);
     setError(null);
     try {
-      setStatus(await operation());
+      const next = await operation();
+      setStatus(next);
+      onStateChange?.(next, null);
     } catch (reason: unknown) {
-      setError(reason instanceof Error ? reason.message : "Falha ao controlar a gateway");
+      const message = reason instanceof Error ? reason.message : "Falha ao controlar a gateway";
+      setError(message);
+      if (status) onStateChange?.(status, message);
     } finally {
       setBusy(false);
     }

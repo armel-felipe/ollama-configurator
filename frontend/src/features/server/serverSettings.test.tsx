@@ -80,3 +80,16 @@ test("offers context window presets for the global context", async () => {
 
   await waitFor(() => expect(update).toHaveBeenCalledWith({ OLLAMA_CONTEXT_LENGTH: 32768 }));
 });
+
+test("publishes dirty and pending states to the workspace", async () => {
+  const published: Array<{ dirty: boolean; pendingRestart: boolean }> = [];
+  const update = vi.fn().mockResolvedValue({ ...state, pending_restart: true, settings: { OLLAMA_KV_CACHE_TYPE: "q8_0" } });
+  render(<ServerSettingsPage load={() => Promise.resolve(state)} update={update} restart={vi.fn()} reset={() => Promise.resolve(state)} restartApplication={vi.fn()} onStateChange={(next) => published.push({ dirty: next.dirty, pendingRestart: next.pendingRestart })} />);
+
+  await screen.findByRole("heading", { name: "Configurações globais do Ollama" });
+  fireEvent.change(screen.getByLabelText("KV cache"), { target: { value: "q8_0" } });
+  expect(published.at(-1)).toMatchObject({ dirty: true });
+  fireEvent.click(screen.getByRole("button", { name: "Salvar configurações" }));
+
+  await waitFor(() => expect(published.at(-1)).toMatchObject({ dirty: false, pendingRestart: true }));
+});

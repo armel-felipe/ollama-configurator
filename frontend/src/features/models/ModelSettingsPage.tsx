@@ -20,9 +20,10 @@ type Props = {
   saveSettings: (options: Record<string, number | string | boolean>) => Promise<unknown>;
   applySettings: () => Promise<unknown>;
   loadRuntime?: () => Promise<RuntimeStatusData>;
+  onStateChange?: (state: { selected: boolean; dirty: boolean; runtime: RuntimeStatusData | null; error: string | null }) => void;
 };
 
-export function ModelSettingsPage({ modelId, loadSettings, saveSettings, applySettings, loadRuntime }: Props) {
+export function ModelSettingsPage({ modelId, loadSettings, saveSettings, applySettings, loadRuntime, onStateChange }: Props) {
   const [options, setOptions] = useState<Options>({});
   const [defaults, setDefaults] = useState<Record<string, boolean>>({
     num_ctx: true,
@@ -39,6 +40,10 @@ export function ModelSettingsPage({ modelId, loadSettings, saveSettings, applySe
   const [nativeDefaults, setNativeDefaults] = useState<Record<string, string>>({});
   const [dirty, setDirty] = useState(false);
   const [applying, setApplying] = useState(false);
+
+  useEffect(() => {
+    onStateChange?.({ selected: true, dirty, runtime, error });
+  }, [dirty, error, onStateChange, runtime]);
 
   const load = useCallback(() => {
     setLoading(true);

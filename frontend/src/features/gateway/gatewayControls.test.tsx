@@ -28,16 +28,19 @@ describe("GatewayControls", () => {
   });
 
   it("reports an unmanaged listener instead of offering to kill it", async () => {
+    const published: string[] = [];
     render(
       <GatewayControls
         getStatus={async () => ({ state: "external", host: "127.0.0.1", port: 11435, detail: "processo externo" })}
         start={vi.fn()}
         stop={vi.fn()}
         restart={vi.fn()}
+        onStateChange={(status) => published.push(status.state)}
       />,
     );
 
     expect(await screen.findByText(/Outro processo está usando a porta/)).toBeInTheDocument();
+    expect(published).toContain("external");
     expect(screen.queryByRole("button", { name: "Parar servidor" })).not.toBeInTheDocument();
   });
 
