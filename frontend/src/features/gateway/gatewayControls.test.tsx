@@ -1,9 +1,12 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { GatewayControls } from "./GatewayControls";
 
 describe("GatewayControls", () => {
-  afterEach(() => cleanup());
+  afterEach(() => {
+    vi.useRealTimers();
+    cleanup();
+  });
 
   it("shows the start button for a stopped gateway and starts it", async () => {
     const start = vi.fn().mockResolvedValue({ state: "running", host: "127.0.0.1", port: 11435, pid: 7 });
@@ -20,7 +23,7 @@ describe("GatewayControls", () => {
     fireEvent.click(screen.getByRole("button", { name: "Iniciar servidor" }));
 
     await waitFor(() => expect(start).toHaveBeenCalledTimes(1));
-    expect(await screen.findByText("Ativo")).toBeInTheDocument();
+    expect(await screen.findByText("Ativo — respondendo")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Parar servidor" })).toBeInTheDocument();
   });
 
@@ -36,5 +39,30 @@ describe("GatewayControls", () => {
 
     expect(await screen.findByText(/Outro processo está usando a porta/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Parar servidor" })).not.toBeInTheDocument();
+  });
+
+  it("keeps checking a running gateway and labels it as responding", async () => {
+    vi.useFakeTimers();
+    const getStatus = vi.fn().mockResolvedValue({
+      state: "running",
+      host: "127.0.0.1",
+      port: 11435,
+      pid: 7,
+    });
+
+    render(
+      <GatewayControls
+        getStatus={getStatus}
+        start={vi.fn()}
+        stop={vi.fn()}
+        restart={vi.fn()}
+      />,
+    );
+
+    await act(async () => { await Promise.resolve(); });
+    expect(screen.getByText("Ativo — respondendo")).toBeInTheDocument();
+
+    await act(async () => { vi.advanceTimersByTime(5000); });
+    expect(getStatus).toHaveBeenCalledTimes(2);
   });
 });

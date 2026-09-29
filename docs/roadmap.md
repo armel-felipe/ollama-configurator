@@ -46,6 +46,16 @@ compatível com OpenCode, mantendo o perfil salvo — inclusive `think=false` �
 cada requisição. O Gemma4 foi validado em streaming real com múltiplos chunks e
 marcador `[DONE]`.
 
+Correção adicional: erros ocorridos durante o streaming OpenAI-compatible agora
+usam um envelope `error` com `message` e `type`, em vez de uma string simples.
+Isso evita que o OpenCode rejeite a resposta por ausência de `choices` ou por
+tipo inválido do campo `error`.
+
+Também foi adicionada a normalização de mensagens OpenAI que chegam com
+`content` como partes de texto. O Ollama nativo exige uma string; a gateway
+agora converte essas partes antes de encaminhar, mantendo compatibilidade com
+o OpenCode.
+
 ## Compatibilidade nativa de clientes Ollama — 7D concluído
 
 Adicionado `/api/chat` à gateway para que `OLLAMA_HOST` possa
@@ -60,3 +70,23 @@ salvo e preservam `think=false`.
 A aplicação agora inicia, para, reinicia e monitora a gateway na porta `11435`,
 sem exigir comando manual no terminal. O padrão continua sendo bind local em
 `127.0.0.1`; a configuração Tailscale permanece explícita.
+
+### Observabilidade contínua — concluído
+
+O indicador da UI agora exibe `Ativo — respondendo` e continua consultando o
+estado da gateway enquanto ela está ativa. Se o processo ou o endpoint deixar de
+responder, o status deixa de permanecer silenciosamente como ativo; a tela
+passa a refletir a nova condição e os controles de recuperação ficam visíveis.
+
+### Aplicação verificável do contexto — em validação
+
+O botão **Aplicar no Ollama** agora consulta o runtime depois do recarregamento
+e compara o `num_ctx` solicitado com o `context_length` retornado por `/api/ps`.
+Se o scheduler mantiver a instância anterior durante a primeira tentativa, a
+aplicação faz uma segunda recarga. Se ainda houver divergência, o resultado é
+marcado como não aplicado e a UI mostra os valores solicitado e efetivo; ela
+não apresenta mais uma confirmação falsa.
+
+O critério de conclusão desta etapa é alterar 16K, 32K e 64K em um modelo
+carregado, confirmar cada valor no `ollama ps` e repetir a validação por uma
+chamada externa à gateway.

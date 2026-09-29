@@ -68,9 +68,7 @@ class GatewayService:
         model, options, think, keep_alive = self._profile(payload)
         if payload.get("stream", False):
             raise ValueError("streaming is not supported by the gateway yet")
-        messages = payload.get("messages")
-        if not isinstance(messages, list) or not all(isinstance(item, dict) for item in messages):
-            raise ValueError("messages must be a list of objects")
+        messages = self._messages(payload)
         result = self.client.chat(
             model,
             messages,
@@ -116,9 +114,7 @@ class GatewayService:
 
     def chat_ollama(self, payload: dict[str, Any]) -> dict[str, Any]:
         model, options, think, keep_alive = self._profile(payload)
-        messages = payload.get("messages")
-        if not isinstance(messages, list) or not all(isinstance(item, dict) for item in messages):
-            raise ValueError("messages must be a list of objects")
+        messages = self._messages(payload)
         if payload.get("stream", False):
             raise ValueError("use stream_chat_ollama for streaming")
         return self.client.chat(
@@ -131,9 +127,7 @@ class GatewayService:
 
     def stream_chat_ollama(self, payload: dict[str, Any]) -> Iterator[dict[str, Any]]:
         model, options, think, keep_alive = self._profile(payload)
-        messages = payload.get("messages")
-        if not isinstance(messages, list) or not all(isinstance(item, dict) for item in messages):
-            raise ValueError("messages must be a list of objects")
+        messages = self._messages(payload)
         yield from self.client.chat_stream(
             model,
             messages,
@@ -144,9 +138,7 @@ class GatewayService:
 
     def stream_chat(self, payload: dict[str, Any]) -> Iterator[dict[str, Any]]:
         model, options, think, keep_alive = self._profile(payload)
-        messages = payload.get("messages")
-        if not isinstance(messages, list) or not all(isinstance(item, dict) for item in messages):
-            raise ValueError("messages must be a list of objects")
+        messages = self._messages(payload)
         stream_id = f"chatcmpl-{uuid4().hex}"
         created = int(time.time())
         for result in self.client.chat_stream(
@@ -195,3 +187,23 @@ class GatewayService:
         think = saved.get("think", payload.get("think"))
         keep_alive = saved.get("keep_alive", payload.get("keep_alive"))
         return model, options, think, keep_alive
+
+    @staticmethod
+    def _messages(payload: dict[str, Any]) -> list[dict[str, Any]]:
+        messages = payload.get("messages")
+        if not isinstance(messages, list) or not all(isinstance(item, dict) for item in messages):
+            raise ValueError("messages must be a list of objects")
+        normalized: list[dict[str, Any]] = []
+        for item in messages:
+            message = dict(item)
+            content = message.get("content")
+            if isinstance(content, list):
+                message["content"] = "".join(
+                    part.get("text", "")
+                    for part in content
+                    if isinstance(part, dict) and isinstance(part.get("text"), str)
+                )
+            elif content is not None and not isinstance(content, str):
+                raise ValueError("message content must be a string or text parts")
+            normalized.append(message)
+        return normalized

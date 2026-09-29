@@ -67,7 +67,13 @@ def create_gateway_app(
                             yield f"data: {json.dumps(chunk, ensure_ascii=False)}\n\n"
                         yield "data: [DONE]\n\n"
                     except Exception as error:
-                        yield f"data: {json.dumps({'error': str(error)}, ensure_ascii=False)}\n\n"
+                        error_payload = {
+                            "error": {
+                                "message": str(error),
+                                "type": "server_error",
+                            }
+                        }
+                        yield f"data: {json.dumps(error_payload, ensure_ascii=False)}\n\n"
 
                 return StreamingResponse(
                     events(),

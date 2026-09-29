@@ -31,6 +31,8 @@ export type RuntimeStatus = {
   model?: string;
   loaded: boolean;
   context?: number | null;
+  requested_context?: number | null;
+  context_matches?: boolean | null;
   processor?: string | null;
   until?: string | null;
   applied_options: Record<string, number | string | boolean>;

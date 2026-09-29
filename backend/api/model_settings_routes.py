@@ -76,8 +76,20 @@ def reset_model_parameter(model_id: str, parameter: str) -> ModelSettingsRespons
 def apply_model_settings(model_id: str) -> ApplyModelSettingsResponse:
     try:
         service = get_model_settings_service()
-        service.apply(model_id)
-        runtime = RuntimeProfileService(service.store, service.client).status(model_id)
+        runtime_service = RuntimeProfileService(service.store, service.client)
+        runtime = None
+        # A running model can still be disappearing from the scheduler when the
+        # first reload returns. Verify it and give Ollama one clean retry before
+        # reporting that the profile was not applied.
+        for _ in range(2):
+            service.apply(model_id)
+            runtime = runtime_service.status(model_id)
+            if runtime.get("context_matches") is not False:
+                break
     except (OllamaError, ValueError) as error:
         raise HTTPException(status_code=502, detail=str(error)) from error
-    return ApplyModelSettingsResponse(model=model_id, applied=True, runtime=runtime)
+    return ApplyModelSettingsResponse(
+        model=model_id,
+        applied=runtime is not None and runtime.get("context_matches") is not False,
+        runtime=runtime,
+    )

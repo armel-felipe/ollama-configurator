@@ -15,6 +15,8 @@ class RuntimeStatusResponse(BaseModel):
     model: str
     loaded: bool
     context: int | None = None
+    requested_context: int | None = None
+    context_matches: bool | None = None
     processor: str | None = None
     until: str | None = None
     applied_options: dict[str, Any] = Field(default_factory=dict)

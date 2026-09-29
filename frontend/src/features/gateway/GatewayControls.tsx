@@ -12,7 +12,7 @@ function statusLabel(state: GatewayStatus["state"]): string {
   return {
     stopped: "Parado",
     starting: "Iniciando",
-    running: "Ativo",
+    running: "Ativo — respondendo",
     external: "Processo externo",
     error: "Erro",
   }[state];
@@ -31,8 +31,8 @@ export function GatewayControls({ getStatus, start, stop, restart }: Props) {
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
-    if (status?.state !== "starting") return undefined;
-    const timer = window.setInterval(load, 1000);
+    if (status?.state !== "starting" && status?.state !== "running") return undefined;
+    const timer = window.setInterval(load, status.state === "starting" ? 1000 : 5000);
     return () => window.clearInterval(timer);
   }, [load, status?.state]);
 

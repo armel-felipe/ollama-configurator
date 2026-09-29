@@ -60,6 +60,41 @@ describe("ModelSettingsPage", () => {
     expect(screen.getByLabelText("Temperature", { exact: true })).not.toBeDisabled();
   });
 
+  it("presents context presets as one selectable group", async () => {
+    render(
+      <ModelSettingsPage
+        modelId="qwen:latest"
+        loadSettings={async () => ({ options: { num_ctx: 32768 } })}
+        saveSettings={vi.fn().mockResolvedValue({ options: {} })}
+        applySettings={vi.fn().mockResolvedValue({ applied: true })}
+      />,
+    );
+
+    await waitFor(() => expect(screen.getByRole("radiogroup", { name: /context window/i })).toBeInTheDocument());
+    expect(screen.getByRole("radio", { name: "32K" })).toBeChecked();
+    fireEvent.click(screen.getByRole("radio", { name: "64K" }));
+    expect(screen.getByRole("radio", { name: "64K" })).toBeChecked();
+    expect(screen.getByRole("radio", { name: "32K" })).not.toBeChecked();
+  });
+
+  it("keeps boolean thinking as an explicit accessible switch", async () => {
+    render(
+      <ModelSettingsPage
+        modelId="qwen:latest"
+        loadSettings={async () => ({ options: { think: false }, thinking: { values: [false, true], default: true } })}
+        saveSettings={vi.fn().mockResolvedValue({ options: { think: false } })}
+        applySettings={vi.fn().mockResolvedValue({ applied: true })}
+      />,
+    );
+
+    await waitFor(() => expect(screen.getByRole("checkbox", { name: /thinking/i })).toBeInTheDocument());
+    expect(screen.getByRole("checkbox", { name: /thinking/i })).not.toBeChecked();
+    fireEvent.click(screen.getByRole("checkbox", { name: /thinking/i }));
+    fireEvent.click(screen.getByRole("button", { name: /salvar/i }));
+
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent(/configurações salvas/i));
+  });
+
   it("persists Default instead of the previous custom value", async () => {
     const save = vi.fn().mockResolvedValue({ options: {} });
     render(
@@ -117,6 +152,35 @@ describe("ModelSettingsPage", () => {
 
     await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Runtime confirmado: 16K"));
     expect(apply).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not claim success when the effective context differs", async () => {
+    const apply = vi.fn().mockResolvedValue({
+      applied: false,
+      runtime: {
+        loaded: true,
+        context: 131072,
+        requested_context: 65536,
+        context_matches: false,
+        applied_options: { num_ctx: 65536 },
+      },
+    });
+    render(
+      <ModelSettingsPage
+        modelId="qwen:latest"
+        loadSettings={async () => ({ options: { num_ctx: 65536 } })}
+        saveSettings={vi.fn().mockResolvedValue({ options: { num_ctx: 65536 } })}
+        applySettings={apply}
+      />,
+    );
+
+    await waitFor(() => expect(screen.getByRole("button", { name: /aplicar/i })).toBeEnabled());
+    fireEvent.click(screen.getByRole("button", { name: /aplicar/i }));
+
+    await waitFor(() =>
+      expect(screen.getByRole("status")).toHaveTextContent(/solicitado 64K, efetivo 128K/i),
+    );
+    expect(screen.queryByText(/Runtime confirmado/)).not.toBeInTheDocument();
   });
 
   it("requires saving before applying a changed profile", async () => {

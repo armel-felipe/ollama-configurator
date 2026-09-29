@@ -8,6 +8,7 @@ type Props = {
   onCustom: () => void;
   onDefault: () => void;
   presets?: Array<{ label: string; value: string }>;
+  radioPresets?: boolean;
   defaultLabel?: string;
 };
 
@@ -21,32 +22,54 @@ export function ParameterControl({
   onCustom,
   onDefault,
   presets = [],
+  radioPresets = false,
   defaultLabel = "Ollama Default",
 }: Props) {
+  const accessibleLabel = id === "num_ctx" ? "Context Window" : label;
   return (
-    <div>
+    <div className="parameter-control">
       <label htmlFor={id}>{label}</label>
-      <small>Default: {defaultLabel}</small>
+      <small className="parameter-default">Default: {defaultLabel}</small>
       <input
         id={id}
+        aria-label={id === "num_ctx" ? accessibleLabel : undefined}
         type={type}
         value={value}
         disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
       />
       {presets.length > 0 ? (
-        <div aria-label={`${label} presets`}>
-          {presets.map((preset) => (
-            <button key={preset.value} type="button" disabled={disabled} onClick={() => onChange(preset.value)}>
-              {preset.label}
-            </button>
-          ))}
-        </div>
+        radioPresets ? (
+          <fieldset className="preset-group" role="radiogroup" aria-label={`${accessibleLabel} presets`} disabled={disabled}>
+            <legend className="sr-only">{label}</legend>
+            {presets.map((preset) => (
+              <label className="preset-option" key={preset.value}>
+                <input
+                  type="radio"
+                  name={`${id}-preset`}
+                  value={preset.value}
+                  checked={String(value) === preset.value}
+                  disabled={disabled}
+                  onChange={() => onChange(preset.value)}
+                />
+                <span>{preset.label}</span>
+              </label>
+            ))}
+          </fieldset>
+        ) : (
+          <div className="preset-buttons" aria-label={`${accessibleLabel} presets`}>
+            {presets.map((preset) => (
+              <button key={preset.value} type="button" disabled={disabled} onClick={() => onChange(preset.value)}>
+                {preset.label}
+              </button>
+            ))}
+          </div>
+        )
       ) : null}
-      <button
+      <button className="default-toggle"
         type="button"
         onClick={disabled ? onCustom : onDefault}
-        aria-label={disabled ? `Personalizar ${label}` : `${label} Ollama Default`}
+        aria-label={disabled ? `Personalizar ${accessibleLabel}` : `${accessibleLabel} Ollama Default`}
       >
         {disabled ? `Personalizar ${label}` : "Ollama Default"}
       </button>
