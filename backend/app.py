@@ -8,6 +8,7 @@ from backend.api.model_runtime_routes import router as model_runtime_router
 from backend.api.model_settings_routes import router as model_settings_router
 from backend.api.ollama_routes import router as ollama_router
 from backend.api.reset_routes import router as reset_router
+from backend.api.server_settings_routes import router as server_settings_router
 from backend.config import settings
 from backend.logging_config import configure_logging
 
@@ -27,6 +28,7 @@ app.include_router(inference_router)
 app.include_router(model_settings_router)
 app.include_router(model_runtime_router)
 app.include_router(reset_router)
+app.include_router(server_settings_router)
 
 
 @app.get("/api/health", response_model=HealthResponse)

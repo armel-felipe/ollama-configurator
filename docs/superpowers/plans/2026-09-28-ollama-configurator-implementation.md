@@ -462,15 +462,15 @@ an explicit restart action.
 - `POST /api/server/restart`.
 - `GET /api/server/runtime` returns server settings, restart-pending state, API availability, and model reapplication results.
 
-- [ ] **Step 1: Write adapter contract tests with a fake process/environment boundary**
-- [ ] **Step 2: Write macOS persistence tests for install, update, remove, restart, and permission failure**
-- [ ] **Step 3: Run focused tests and verify failure**
-- [ ] **Step 4: Implement the shared adapter contract and macOS persistence with a managed per-user LaunchAgent that reapplies configured environment values at login and a controlled Ollama restart; reset removes the managed LaunchAgent and its overrides**
-- [ ] **Step 5: Implement capability-aware server setting validation, including KV cache values supported by the installed Ollama, and explicit reset-as-removal**
-- [ ] **Step 6: Implement `RestartCoordinator` so every restart path reapplies server settings first, then saved model profiles, then verifies runtime; no caller may invoke a raw restart independently**
-- [ ] **Step 7: Add server UI controls visible before model selection, restart confirmation, pending/applied/error states, and post-restart diagnostics**
-- [ ] **Step 8: Validate KV cache, global context, Flash Attention, persistence across Ollama restart/logout/login/reboot, and model-profile reapplication on macOS**
-- [ ] **Step 9: Commit `feat: add persistent macOS server settings`**
+- [x] **Step 1: Write adapter contract tests with a fake process/environment boundary**
+- [x] **Step 2: Write macOS persistence tests for install, update, remove, restart, and permission failure**
+- [x] **Step 3: Run focused tests and verify failure**
+- [x] **Step 4: Implement the shared adapter contract and macOS persistence with a managed per-user LaunchAgent that reapplies configured environment values at login and a controlled Ollama restart; reset removes the managed LaunchAgent and its overrides**
+- [x] **Step 5: Implement capability-aware server setting validation, including KV cache values supported by the installed Ollama, and explicit reset-as-removal**
+- [x] **Step 6: Implement `RestartCoordinator` so every restart path reapplies server settings first, then saved model profiles, then verifies runtime; no caller may invoke a raw restart independently**
+- [x] **Step 7: Add server UI controls visible before model selection, restart confirmation, pending/applied/error states, and post-restart diagnostics**
+- [x] **Step 8: Validate KV cache, global context, Flash Attention, persistence across Ollama restart/logout/login/reboot, and model-profile reapplication on macOS**
+- [x] **Step 9: Commit `feat: add persistent macOS server settings`**
 
 ### Task 9: Windows adapter and cross-platform server settings
 

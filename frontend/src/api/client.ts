@@ -128,3 +128,55 @@ export function stopGateway(): Promise<GatewayStatus> {
 export function restartGateway(): Promise<GatewayStatus> {
   return gatewayAction("restart");
 }
+
+export type ServerSettingCapability = {
+  label: string;
+  description: string;
+  type: "select" | "boolean" | "number" | "text";
+  options?: string[];
+  default: string | number | boolean;
+  min?: number;
+};
+
+export type ServerSettingsState = {
+  settings: Record<string, string | number | boolean>;
+  effective: Record<string, string | number | boolean>;
+  pending_restart: boolean;
+  available: boolean;
+  capabilities: Record<string, ServerSettingCapability>;
+};
+
+export type ServerRestartResult = { success: boolean; detail: string; reapplied_models: string[] };
+
+export async function getServerSettings(): Promise<ServerSettingsState> {
+  const response = await fetch("/api/server/settings");
+  if (!response.ok) throw new Error("Não foi possível carregar as configurações globais");
+  return response.json() as Promise<ServerSettingsState>;
+}
+
+export async function saveServerSettings(
+  patch: Record<string, string | number | boolean | "default">,
+): Promise<ServerSettingsState> {
+  const response = await fetch("/api/server/settings", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(patch),
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => null) as { detail?: string } | null;
+    throw new Error(body?.detail ?? "Não foi possível salvar as configurações globais");
+  }
+  return response.json() as Promise<ServerSettingsState>;
+}
+
+export async function resetServerSettings(): Promise<ServerSettingsState> {
+  const response = await fetch("/api/server/settings/reset", { method: "POST" });
+  if (!response.ok) throw new Error("Não foi possível restaurar as configurações globais");
+  return response.json() as Promise<ServerSettingsState>;
+}
+
+export async function restartServer(): Promise<ServerRestartResult> {
+  const response = await fetch("/api/server/restart", { method: "POST" });
+  if (!response.ok) throw new Error("Não foi possível reiniciar o Ollama");
+  return response.json() as Promise<ServerRestartResult>;
+}

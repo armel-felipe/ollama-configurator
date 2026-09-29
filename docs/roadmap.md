@@ -90,3 +90,21 @@ não apresenta mais uma confirmação falsa.
 O critério de conclusão desta etapa é alterar 16K, 32K e 64K em um modelo
 carregado, confirmar cada valor no `ollama ps` e repetir a validação por uma
 chamada externa à gateway.
+
+## Etapa 8 — Configurações globais do servidor: concluída em macOS
+
+A aplicação agora exibe as configurações globais antes da seleção de modelo,
+com valores efetivos, padrões explícitos e indicação de reinício pendente.
+Foram incluídos KV cache (`f16`, `q8_0`, `q4_0`), Flash Attention, contexto
+global, keep-alive, paralelismo, limite de modelos carregados, fila, overhead
+de GPU e scheduler.
+
+No macOS, os overrides persistem em um LaunchAgent gerenciado por usuário e
+são reaplicados no login. O botão de reinício encerra e reabre o Ollama e
+reaplica os perfis de modelo salvos pelo coordenador único de reinício. Reset
+remove os overrides sem apagar modelos ou pesos.
+
+QA da etapa: 58 testes backend, 31 testes frontend, typecheck, build,
+Ruff e mypy aprovados. A validação de logout/login/reboot físico depende de
+execução no macOS instalado; o contrato do LaunchAgent e o fluxo de reexecução
+foram cobertos por testes isolados.
