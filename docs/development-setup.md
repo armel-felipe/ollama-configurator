@@ -6,10 +6,21 @@
 2. Instale `uv` conforme a documentação oficial do ambiente.
 3. Na raiz do projeto, execute `uv sync`.
 4. Execute `cd frontend && npm ci`.
-5. Inicie o backend em `127.0.0.1:8787`.
-6. Inicie o frontend com `npm run dev`.
+5. Inicie os dois serviços juntos com `uv run python scripts/dev.py`.
+6. Abra `http://127.0.0.1:5173`.
 7. Para clientes externos, inicie o gateway em `127.0.0.1:11435`:
    `uv run uvicorn backend.gateway:app --host 127.0.0.1 --port 11435`.
+
+O botão de retry da interface apenas repete a consulta. Se o backend estiver
+parado, a tela informa explicitamente que `127.0.0.1:8787` precisa ser
+iniciado; o launcher acima evita esse estado no fluxo normal de desenvolvimento.
+
+Para iniciar os processos manualmente, use:
+
+```bash
+uv run uvicorn backend.app:app --host 127.0.0.1 --port 8787
+cd frontend && npm run dev
+```
 
 Na aplicação, a seção `Runtime Gateway` permite iniciar, parar e reiniciar esse
 serviço pela interface. O comando manual continua disponível para diagnóstico e

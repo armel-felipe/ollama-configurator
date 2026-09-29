@@ -7,6 +7,16 @@ Aplicação local para diagnóstico e configuração segura do Ollama.
 Requisitos: Python 3.12+, `uv`, Node.js 22+ e npm. O Ollama deve estar instalado
 se os fluxos de integração forem executados.
 
+Modo recomendado de desenvolvimento (backend e frontend juntos):
+
+```bash
+uv run python scripts/dev.py
+```
+
+Isso mantém o backend em `127.0.0.1:8787` e o frontend em `127.0.0.1:5173`.
+
+Modo manual, se necessário:
+
 Backend:
 
 ```bash

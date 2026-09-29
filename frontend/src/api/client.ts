@@ -12,7 +12,15 @@ export type DiagnosticsSnapshot = {
 };
 
 export async function getDiagnostics(): Promise<DiagnosticsSnapshot> {
-  const response = await fetch("/api/diagnostics");
+  let response: Response;
+  try {
+    response = await fetch("/api/diagnostics");
+  } catch (error) {
+    throw new Error(
+      "O backend local não está respondendo em 127.0.0.1:8787. Inicie a aplicação pelo launcher de desenvolvimento e tente novamente.",
+      { cause: error },
+    );
+  }
   if (!response.ok) throw new Error("Não foi possível carregar os diagnósticos");
   return response.json() as Promise<DiagnosticsSnapshot>;
 }

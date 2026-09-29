@@ -113,3 +113,9 @@ QA da etapa: 58 testes backend, 31 testes frontend, typecheck, build,
 Ruff e mypy aprovados. A validação de logout/login/reboot físico depende de
 execução no macOS instalado; o contrato do LaunchAgent e o fluxo de reexecução
 foram cobertos por testes isolados.
+
+### Gate de execução do MVP — corrigido
+
+O desenvolvimento agora possui um launcher único (`scripts/dev.py`) que inicia
+backend e frontend juntos. Quando o backend local não responde, a UI informa a
+causa e a porta `8787`, em vez de exibir apenas uma falha genérica de leitura.
