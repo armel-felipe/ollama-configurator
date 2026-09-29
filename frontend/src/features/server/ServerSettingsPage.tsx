@@ -7,9 +7,10 @@ type Props = {
   update: (patch: Record<string, Value | "default">) => Promise<ServerSettingsState>;
   restart: () => Promise<ServerRestartResult>;
   reset: () => Promise<ServerSettingsState>;
+  restartApplication: () => Promise<void>;
 };
 
-export function ServerSettingsPage({ load, update, restart, reset }: Props) {
+export function ServerSettingsPage({ load, update, restart, reset, restartApplication }: Props) {
   const [state, setState] = useState<ServerSettingsState | null>(null);
   const [values, setValues] = useState<Record<string, Value>>({});
   const [defaults, setDefaults] = useState<Set<string>>(new Set());
@@ -32,7 +33,17 @@ export function ServerSettingsPage({ load, update, restart, reset }: Props) {
   useEffect(() => { refresh(); }, [refresh]);
 
   const entries = useMemo(() => Object.entries(state?.capabilities ?? {}), [state]);
-  if (error) return <section aria-labelledby="server-settings-heading"><h2 id="server-settings-heading">Configurações globais do Ollama</h2><p className="server-error" aria-live="polite">{error}</p><button type="button" onClick={refresh}>Recarregar configurações globais</button></section>;
+  const restartApp = async () => {
+    setBusy(true);
+    try {
+      await restartApplication();
+      window.setTimeout(() => window.location.reload(), 1200);
+    } catch (reason: unknown) {
+      setError(reason instanceof Error ? reason.message : "Falha ao reiniciar a aplicação");
+      setBusy(false);
+    }
+  };
+  if (error) return <section aria-labelledby="server-settings-heading"><h2 id="server-settings-heading">Configurações globais do Ollama</h2><p className="server-error" aria-live="polite">{error}</p><div className="server-recovery-actions"><button type="button" onClick={refresh}>Recarregar configurações globais</button><button type="button" onClick={() => void restartApp()} disabled={busy}>Reiniciar aplicação</button></div></section>;
   if (!state) return <section aria-labelledby="server-settings-heading"><h2 id="server-settings-heading">Configurações globais do Ollama</h2><p>Carregando configurações do servidor…</p></section>;
 
   const change = (name: string, value: Value) => {
@@ -74,7 +85,7 @@ export function ServerSettingsPage({ load, update, restart, reset }: Props) {
     <section className="server-settings-page" aria-labelledby="server-settings-heading">
       <div className="page-heading">
         <div><div className="section-kicker">Servidor</div><h2 id="server-settings-heading">Configurações globais do Ollama</h2><p>Defina valores usados por qualquer modelo e cliente que passe pelo runtime gerenciado.</p></div>
-        <span className={`server-availability ${state.available ? "is-available" : ""}`}>{state.available ? "Servidor disponível" : "Servidor indisponível"}</span>
+        <div className="server-heading-actions"><span className={`server-availability ${state.available ? "is-available" : ""}`}>{state.available ? "Servidor disponível" : "Servidor indisponível"}</span><button type="button" onClick={() => void restartApp()} disabled={busy}>Reiniciar aplicação</button></div>
       </div>
       {state.pending_restart ? <p className="pending-banner" role="status">Reinício pendente: as mudanças serão aplicadas ao reiniciar o Ollama.</p> : null}
       <div className="server-settings-grid">

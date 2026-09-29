@@ -119,3 +119,5 @@ foram cobertos por testes isolados.
 O desenvolvimento agora possui um launcher único (`scripts/dev.py`) que inicia
 backend e frontend juntos. Quando o backend local não responde, a UI informa a
 causa e a porta `8787`, em vez de exibir apenas uma falha genérica de leitura.
+Quando necessário, o painel também oferece **Reiniciar aplicação**, que solicita
+ao supervisor a reinicialização coordenada dos dois processos e recarrega a UI.

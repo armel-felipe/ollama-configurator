@@ -25,6 +25,11 @@ export async function getDiagnostics(): Promise<DiagnosticsSnapshot> {
   return response.json() as Promise<DiagnosticsSnapshot>;
 }
 
+export async function restartApplication(): Promise<void> {
+  const response = await fetch("/api/application/restart", { method: "POST" });
+  if (!response.ok) throw new Error("Não foi possível reiniciar a aplicação");
+}
+
 export async function getModelSettings(modelId: string): Promise<{
   options: Record<string, number | string | boolean>;
   thinking?: { values: Array<boolean | string>; default?: boolean | string | null } | null;

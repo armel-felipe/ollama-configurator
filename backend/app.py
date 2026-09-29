@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 
+from backend.api.application_routes import router as application_router
 from backend.api.diagnostics_routes import router as diagnostics_router
 from backend.api.gateway_routes import router as gateway_router
 from backend.api.inference_routes import router as inference_router
@@ -23,6 +24,7 @@ class HealthResponse(BaseModel):
 app = FastAPI(title=settings.app_name, version=settings.version)
 app.include_router(ollama_router)
 app.include_router(diagnostics_router)
+app.include_router(application_router)
 app.include_router(gateway_router)
 app.include_router(inference_router)
 app.include_router(model_settings_router)

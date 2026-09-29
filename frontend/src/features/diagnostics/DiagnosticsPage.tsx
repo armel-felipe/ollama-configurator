@@ -15,6 +15,7 @@ import {
   resetServerSettings,
   restartServer,
   saveServerSettings,
+  restartApplication,
 } from "../../api/client";
 import { ErrorState, LoadingState } from "../shared/StatusState";
 import { ModelWorkspace } from "../models/ModelWorkspace";
@@ -52,7 +53,7 @@ export function DiagnosticsPage({ loadDiagnostics }: Props) {
         </div>
         <div className="ollama-status"><span className="status-dot" aria-hidden="true" /> Ollama {data.ollama.available ? data.ollama.version : "indisponível"}</div>
       </div>
-      <ServerSettingsPage load={getServerSettings} update={saveServerSettings} restart={restartServer} reset={resetServerSettings} />
+      <ServerSettingsPage load={getServerSettings} update={saveServerSettings} restart={restartServer} reset={resetServerSettings} restartApplication={restartApplication} />
       <GatewayControls
         getStatus={getGatewayStatus}
         start={startGateway}
