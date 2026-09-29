@@ -147,6 +147,7 @@ export type ServerSettingCapability = {
   description: string;
   type: "select" | "boolean" | "number" | "text";
   options?: string[];
+  presets?: Array<{ label: string; value: number }>;
   default: string | number | boolean;
   min?: number;
 };

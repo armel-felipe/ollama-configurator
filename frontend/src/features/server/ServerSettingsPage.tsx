@@ -87,13 +87,14 @@ export function ServerSettingsPage({ load, update, restart, reset, restartApplic
         <div><div className="section-kicker">Servidor</div><h2 id="server-settings-heading">Configurações globais do Ollama</h2><p>Defina valores usados por qualquer modelo e cliente que passe pelo runtime gerenciado.</p></div>
         <div className="server-heading-actions"><span className={`server-availability ${state.available ? "is-available" : ""}`}>{state.available ? "Servidor disponível" : "Servidor indisponível"}</span><button type="button" onClick={() => void restartApp()} disabled={busy}>Reiniciar aplicação</button></div>
       </div>
-      {state.pending_restart ? <p className="pending-banner" role="status">Reinício pendente: as mudanças serão aplicadas ao reiniciar o Ollama.</p> : null}
+      {state.pending_restart ? <p className="pending-banner" role="status">Alterações do Ollama aguardando aplicação. Use “Aplicar alterações no Ollama” para efetivá-las.</p> : null}
       <div className="server-settings-grid">
         {entries.map(([name, capability]) => (
           <article className="server-setting-card" key={name}>
             <div><h3>{capability.label}</h3><p>{capability.description}</p></div>
             {capability.type === "select" ? <select aria-label={capability.label} value={String(values[name])} onChange={(event) => change(name, event.target.value)}>{capability.options?.map((option) => <option key={option} value={option}>{option}</option>)}</select> : null}
             {capability.type === "boolean" ? <label className="server-switch"><input type="checkbox" aria-label={capability.label} checked={values[name] === true} onChange={(event) => change(name, event.target.checked)} /><span>{values[name] === true ? "Ligado" : "Desligado"}</span></label> : null}
+            {capability.type === "number" && capability.presets?.length ? <fieldset className="server-preset-group" role="radiogroup" aria-label={`${capability.label} presets`}><legend className="sr-only">Blocos de contexto</legend>{capability.presets.map((preset) => <label className="server-preset-option" key={preset.value}><input type="radio" name={`${name}-preset`} value={preset.value} checked={values[name] === preset.value} onChange={() => change(name, preset.value)} /><span>{preset.label}</span></label>)}</fieldset> : null}
             {capability.type === "number" || capability.type === "text" ? <input aria-label={capability.label} type={capability.type === "number" ? "number" : "text"} min={capability.min} value={String(values[name])} onChange={(event) => change(name, capability.type === "number" ? Number(event.target.value) : event.target.value)} /> : null}
             <button className="default-toggle" type="button" onClick={() => markDefault(name)}>Ollama Default</button>
             <small>Efetivo agora: {String(state.effective[name])}</small>
@@ -102,10 +103,10 @@ export function ServerSettingsPage({ load, update, restart, reset, restartApplic
       </div>
       <div className="server-actions">
         <span>{dirty ? "Alterações não salvas" : message ?? "Perfil global salvo"}</span>
-        <div><button type="button" onClick={() => void runReset()} disabled={busy}>Restaurar padrões</button><button type="button" onClick={() => setConfirmRestart(true)} disabled={busy || state.pending_restart === false}>Reiniciar Ollama</button><button className="primary-action" type="button" onClick={() => void save()} disabled={busy || !dirty}>Salvar configurações</button></div>
+        <div><button type="button" onClick={() => void runReset()} disabled={busy}>Restaurar padrões</button><button type="button" onClick={() => setConfirmRestart(true)} disabled={busy || state.pending_restart === false}>Aplicar alterações no Ollama</button><button className="primary-action" type="button" onClick={() => void save()} disabled={busy || !dirty}>Salvar configurações</button></div>
       </div>
       {error ? <p role="alert">{error}</p> : null}
-      {confirmRestart ? <div className="restart-confirm" role="dialog" aria-labelledby="restart-title"><h3 id="restart-title">Reiniciar o Ollama?</h3><p>O servidor será reiniciado e os perfis salvos dos modelos serão reaplicados.</p><button type="button" onClick={() => setConfirmRestart(false)}>Cancelar</button><button className="primary-action" type="button" onClick={() => void runRestart()}>Confirmar reinício</button></div> : null}
+      {confirmRestart ? <div className="restart-confirm" role="dialog" aria-labelledby="restart-title"><h3 id="restart-title">Aplicar alterações no Ollama?</h3><p>O Ollama será reiniciado e os perfis salvos dos modelos serão reaplicados.</p><button type="button" onClick={() => setConfirmRestart(false)}>Cancelar</button><button className="primary-action" type="button" onClick={() => void runRestart()}>Confirmar aplicação</button></div> : null}
     </section>
   );
 }

@@ -20,6 +20,13 @@ SERVER_SETTINGS: dict[str, dict[str, Any]] = {
         "type": "number",
         "default": 4096,
         "min": 1,
+        "presets": [
+            {"label": "16K", "value": 16384},
+            {"label": "32K", "value": 32768},
+            {"label": "64K", "value": 65536},
+            {"label": "128K", "value": 131072},
+            {"label": "256K", "value": 262144},
+        ],
     },
     "OLLAMA_KEEP_ALIVE": {
         "label": "Keep Alive global",

@@ -122,6 +122,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .preset-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
 .preset-buttons button, .default-toggle, .secondary-action, .primary-action { min-height: 36px; padding: 0 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-raised); color: var(--text-muted); cursor: pointer; font-size: 11px; font-weight: 700; }
 .preset-buttons button:hover, .default-toggle:hover, .secondary-action:hover { border-color: var(--border-strong); background: var(--surface-subtle); color: var(--text); }
+.server-preset-group { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; padding: 0; margin: 2px 0 0; border: 0; }
+.server-preset-option { position: relative; display: grid; place-items: center; min-height: 36px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text-muted); cursor: pointer; font-size: 11px; font-weight: 700; }
+.server-preset-option:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); color: var(--text); }
+.server-preset-option input { position: absolute; opacity: 0; pointer-events: none; }
+.server-preset-option:has(input:focus-visible) { outline: 3px solid color-mix(in srgb, var(--focus) 38%, transparent); outline-offset: 2px; }
 .default-toggle { justify-self: start; color: var(--accent); }
 .profile-section:has(.parameter-control) > .parameter-control { gap: 10px; }
 .select-control { display: grid; gap: 9px; max-width: 360px; }

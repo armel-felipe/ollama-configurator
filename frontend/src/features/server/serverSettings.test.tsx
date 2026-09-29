@@ -21,6 +21,29 @@ const state: ServerSettingsState = {
   },
 };
 
+const contextState: ServerSettingsState = {
+  settings: {},
+  effective: { OLLAMA_CONTEXT_LENGTH: 4096 },
+  pending_restart: false,
+  available: true,
+  capabilities: {
+    OLLAMA_CONTEXT_LENGTH: {
+      label: "Contexto global",
+      description: "Limite padrão",
+      type: "number",
+      default: 4096,
+      min: 1,
+      presets: [
+        { label: "16K", value: 16384 },
+        { label: "32K", value: 32768 },
+        { label: "64K", value: 65536 },
+        { label: "128K", value: 131072 },
+        { label: "256K", value: 262144 },
+      ],
+    },
+  },
+};
+
 test("shows global settings before model selection and exposes restart-pending state", async () => {
   const update = vi.fn().mockResolvedValue({ ...state, pending_restart: true, settings: { OLLAMA_KV_CACHE_TYPE: "q8_0" } });
   const restart = vi.fn().mockResolvedValue({ success: true, detail: "ok", reapplied_models: [] });
@@ -32,7 +55,7 @@ test("shows global settings before model selection and exposes restart-pending s
   fireEvent.click(screen.getByRole("button", { name: "Salvar configurações" }));
 
   await waitFor(() => expect(update).toHaveBeenCalledWith({ OLLAMA_KV_CACHE_TYPE: "q8_0" }));
-  expect(await screen.findByRole("status")).toHaveTextContent(/reinício pendente/i);
+  expect(await screen.findByRole("status")).toHaveTextContent(/aguardando aplicação/i);
 });
 
 test("restart action reports model profile reapplication", async () => {
@@ -40,9 +63,20 @@ test("restart action reports model profile reapplication", async () => {
   render(<ServerSettingsPage load={() => Promise.resolve({ ...state, pending_restart: true })} update={vi.fn()} restart={restart} reset={() => Promise.resolve(state)} restartApplication={vi.fn()} />);
 
   await screen.findByRole("heading", { name: "Configurações globais do Ollama" });
-  fireEvent.click(screen.getByRole("button", { name: "Reiniciar Ollama" }));
-  fireEvent.click(screen.getByRole("button", { name: "Confirmar reinício" }));
+  fireEvent.click(screen.getByRole("button", { name: "Aplicar alterações no Ollama" }));
+  fireEvent.click(screen.getByRole("button", { name: "Confirmar aplicação" }));
 
   await waitFor(() => expect(restart).toHaveBeenCalledTimes(1));
   expect(await screen.findByText(/perfis reaplicados/i)).toBeInTheDocument();
+});
+
+test("offers context window presets for the global context", async () => {
+  const update = vi.fn().mockResolvedValue({ ...contextState, pending_restart: true });
+  render(<ServerSettingsPage load={() => Promise.resolve(contextState)} update={update} restart={vi.fn()} reset={() => Promise.resolve(contextState)} restartApplication={vi.fn()} />);
+
+  await screen.findByRole("heading", { name: "Configurações globais do Ollama" });
+  fireEvent.click(screen.getByRole("radio", { name: "32K" }));
+  fireEvent.click(screen.getByRole("button", { name: "Salvar configurações" }));
+
+  await waitFor(() => expect(update).toHaveBeenCalledWith({ OLLAMA_CONTEXT_LENGTH: 32768 }));
 });
