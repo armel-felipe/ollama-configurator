@@ -122,3 +122,34 @@ def test_gateway_stream_generate_forwards_saved_profile() -> None:
     assert captured["think"] is False
     assert captured["options"] == {"num_ctx": 16384}
     assert chunks[-1]["done"] is True
+
+
+def test_openai_stream_includes_usage_on_final_chunk() -> None:
+    class FakeClient:
+        def chat_stream(self, _model: str, _messages: list[dict[str, object]], **_: object):
+            yield {"message": {"role": "assistant", "content": "Olá"}, "done": False}
+            yield {
+                "message": {"role": "assistant", "content": ""},
+                "done": True,
+                "prompt_eval_count": 12,
+                "eval_count": 7,
+            }
+
+    store = ConfigStore(Path("/tmp/gateway-stream-usage-config.json"))
+    service = GatewayService(store, FakeClient())
+
+    chunks = list(
+        service.stream_chat(
+            {
+                "model": "gemma4:26b-mlx",
+                "messages": [{"role": "user", "content": "Oi"}],
+                "stream": True,
+            }
+        )
+    )
+
+    assert chunks[-1]["usage"] == {
+        "prompt_tokens": 12,
+        "completion_tokens": 7,
+        "total_tokens": 19,
+    }

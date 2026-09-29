@@ -56,6 +56,11 @@ Também foi adicionada a normalização de mensagens OpenAI que chegam com
 agora converte essas partes antes de encaminhar, mantendo compatibilidade com
 o OpenCode.
 
+Correção adicional de compatibilidade: o último chunk SSE agora repassa
+`prompt_tokens`, `completion_tokens` e `total_tokens` derivados das métricas do
+Ollama. Isso permite que clientes como OpenCode atualizem seus indicadores de
+tokens/s ao usar a porta `11435`, como já ocorria diretamente na `11434`.
+
 ## Compatibilidade nativa de clientes Ollama — 7D concluído
 
 Adicionado `/api/chat` à gateway para que `OLLAMA_HOST` possa

@@ -158,7 +158,7 @@ class GatewayService:
                 delta["content"] = message["content"]
             if isinstance(message.get("thinking"), str):
                 delta["reasoning_content"] = message["thinking"]
-            yield {
+            chunk: dict[str, Any] = {
                 "id": stream_id,
                 "object": "chat.completion.chunk",
                 "created": created,
@@ -169,6 +169,15 @@ class GatewayService:
                     "finish_reason": "stop" if result.get("done") else None,
                 }],
             }
+            if result.get("done"):
+                prompt_tokens = result.get("prompt_eval_count", 0) or 0
+                completion_tokens = result.get("eval_count", 0) or 0
+                chunk["usage"] = {
+                    "prompt_tokens": prompt_tokens,
+                    "completion_tokens": completion_tokens,
+                    "total_tokens": prompt_tokens + completion_tokens,
+                }
+            yield chunk
 
     def _profile(
         self, payload: dict[str, Any]
