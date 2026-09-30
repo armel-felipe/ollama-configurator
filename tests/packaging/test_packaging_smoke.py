@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import plistlib
 import subprocess
 import sys
 from pathlib import Path
@@ -97,3 +98,10 @@ def test_release_files_are_present() -> None:
     ]
 
     assert all((ROOT / path).exists() for path in expected)
+
+
+def test_macos_bundle_declares_its_launcher_executable() -> None:
+    with (ROOT / "packaging/macos/Info.plist").open("rb") as stream:
+        info = plistlib.load(stream)
+
+    assert info["CFBundleExecutable"] == "OllamaConfigurator"
