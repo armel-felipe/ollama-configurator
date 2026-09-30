@@ -1,6 +1,7 @@
 param(
   [string]$Output = "dist/windows",
-  [switch]$SkipFrontendInstall
+  [switch]$SkipFrontendInstall,
+  [switch]$SkipFrontendBuild
 )
 
 $ErrorActionPreference = "Stop"
@@ -16,6 +17,7 @@ if (-not (Test-Path (Join-Path $OutputPath "backend/OllamaConfiguratorBackend"))
 }
 $FrontendArgs = @("--output", (Join-Path $OutputPath "frontend"))
 if ($SkipFrontendInstall) { $FrontendArgs += "--skip-install" }
+if ($SkipFrontendBuild) { $FrontendArgs += "--skip-build" }
 & node (Join-Path $Root "scripts/build_frontend.mjs") @FrontendArgs
 if (-not (Test-Path (Join-Path $OutputPath "frontend/manifest.json"))) {
   throw "Frontend build did not produce manifest.json."

@@ -1,4 +1,5 @@
 import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -8,6 +9,7 @@ const frontend = resolve(root, "frontend");
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
 const skipInstall = args.includes("--skip-install");
+const skipBuild = args.includes("--skip-build");
 const outputIndex = args.indexOf("--output");
 const output = resolve(root, outputIndex >= 0 ? args[outputIndex + 1] : "dist/frontend");
 const packageJson = JSON.parse(await readFile(resolve(frontend, "package.json"), "utf8"));
@@ -38,8 +40,14 @@ if (!dryRun) {
     const install = spawnSync(npm, ["ci"], { cwd: frontend, stdio: "inherit" });
     if (install.status !== 0) process.exit(install.status ?? 1);
   }
-  const build = spawnSync(npm, ["run", "build"], { cwd: frontend, stdio: "inherit" });
-  if (build.status !== 0) process.exit(build.status ?? 1);
+  if (!skipBuild) {
+    const build = spawnSync(npm, ["run", "build"], { cwd: frontend, stdio: "inherit" });
+    if (build.status !== 0) process.exit(build.status ?? 1);
+  }
+  if (!existsSync(resolve(frontend, "dist"))) {
+    console.error("Frontend build output not found: frontend/dist");
+    process.exit(1);
+  }
   await rm(output, { recursive: true, force: true });
   await mkdir(output, { recursive: true });
   await copyClean(resolve(frontend, "dist"), output);
