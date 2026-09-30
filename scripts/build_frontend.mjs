@@ -1,6 +1,6 @@
-import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
-import { resolve } from "node:path";
+import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
@@ -17,6 +17,20 @@ const manifest = {
   bind_host: "127.0.0.1",
 };
 
+async function copyClean(source, destination) {
+  await mkdir(destination, { recursive: true });
+  for (const entry of await readdir(source, { withFileTypes: true })) {
+    if (entry.name.startsWith("._") || entry.name === ".DS_Store") continue;
+    const sourcePath = join(source, entry.name);
+    const destinationPath = join(destination, entry.name);
+    if (entry.isDirectory()) {
+      await copyClean(sourcePath, destinationPath);
+    } else {
+      await cp(sourcePath, destinationPath);
+    }
+  }
+}
+
 if (!dryRun) {
   const npm = process.platform === "win32" ? "npm.cmd" : "npm";
   const install = spawnSync(npm, ["ci"], { cwd: frontend, stdio: "inherit" });
@@ -25,7 +39,7 @@ if (!dryRun) {
   if (build.status !== 0) process.exit(build.status ?? 1);
   await rm(output, { recursive: true, force: true });
   await mkdir(output, { recursive: true });
-  await cp(resolve(frontend, "dist"), output, { recursive: true });
+  await copyClean(resolve(frontend, "dist"), output);
   await writeFile(resolve(output, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
 }
 

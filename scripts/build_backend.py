@@ -23,6 +23,16 @@ def _manifest() -> dict[str, object]:
     }
 
 
+def _remove_macos_metadata(root: Path) -> None:
+    for path in sorted(root.rglob("*"), key=lambda candidate: len(candidate.parts), reverse=True):
+        if not (path.name.startswith("._") or path.name == ".DS_Store"):
+            continue
+        if path.is_dir():
+            shutil.rmtree(path)
+        else:
+            path.unlink(missing_ok=True)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Build the Ollama Configurator backend.")
     parser.add_argument("--output", type=Path, default=ROOT / "dist" / "backend")
@@ -68,6 +78,7 @@ def main() -> int:
             cwd=ROOT,
             check=True,
         )
+    _remove_macos_metadata(output)
 
     print(json.dumps(manifest))
     return 0

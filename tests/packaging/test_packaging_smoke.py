@@ -5,6 +5,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from scripts.build_backend import _remove_macos_metadata
+
 ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -41,6 +43,35 @@ def test_frontend_packaging_dry_run_is_versioned(tmp_path: Path) -> None:
     assert manifest["artifact"] == "OllamaConfiguratorFrontend"
     assert manifest["source"] == "frontend/dist"
     assert manifest["version"]
+
+
+def test_frontend_package_excludes_macos_metadata(tmp_path: Path) -> None:
+    output = tmp_path / "frontend"
+    subprocess.run(
+        ["node", "scripts/build_frontend.mjs", "--output", str(output)],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert not any(path.name.startswith("._") for path in output.rglob("*"))
+    assert not any(path.name == ".DS_Store" for path in output.rglob("*"))
+
+
+def test_backend_package_excludes_macos_metadata(tmp_path: Path) -> None:
+    output = tmp_path / "backend"
+    nested = output / "_internal" / "package.dist-info"
+    nested.mkdir(parents=True)
+    (nested / "._METADATA").write_text("metadata")
+    (nested / ".DS_Store").write_text("finder")
+    (nested / "METADATA").write_text("real metadata")
+
+    _remove_macos_metadata(output)
+
+    assert not any(path.name.startswith("._") for path in output.rglob("*"))
+    assert not any(path.name == ".DS_Store" for path in output.rglob("*"))
+    assert (nested / "METADATA").is_file()
 
 
 def test_uninstall_dry_run_never_targets_ollama_models() -> None:

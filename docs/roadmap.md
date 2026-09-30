@@ -322,14 +322,14 @@ desinstalação segura, workflows nativos e documentação de release, checksums
 assinatura e notarização. O bundle empacotado serve o frontend localmente e
 abre a UI no navegador.
 
-QA local: 83 testes backend, incluindo 4 testes de empacotamento, Ruff, mypy,
-typecheck, build frontend e inspeção visual aprovados. A publicação final de
-artefatos assinados e a validação em máquinas limpas ainda dependem dos
-runners/hosts nativos de macOS e Windows.
+QA local: 85 testes backend, incluindo 6 testes de empacotamento, Ruff, mypy,
+typecheck, build frontend, inspeção visual e build real do bundle macOS ARM64
+(`.app` e `.dmg`) aprovados. A assinatura/notarização, a validação em máquina
+limpa e o build/instalação nativos Windows ainda dependem dos runners/hosts
+nativos de release.
 
 ### Débitos menores de qualidade: pendentes
 
 - substituir os ícones fallback por logos oficiais verificados quando houver
   fonte adequada;
-- excluir arquivos `._*` do escaneamento de testes no HD externo;
 - validar instalação, atualização e desinstalação em máquinas limpas.
