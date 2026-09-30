@@ -20,5 +20,13 @@ describe("AppShell", () => {
     expect(screen.getByRole("link", { name: /conectar/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /área de trabalho/i })).toBeInTheDocument();
     expect(screen.queryByText(/ollama conectado/i)).not.toBeInTheDocument();
+    expect(screen.getByTestId("app-shell")).toBeInTheDocument();
+    expect(screen.getByTestId("sidebar")).toBeInTheDocument();
+    expect(screen.getByTestId("sidebar-scroll")).toContainElement(
+      screen.getByRole("navigation", { name: /workspace/i }),
+    );
+    expect(screen.getByTestId("workspace-content-scroll")).toContainElement(
+      screen.getByRole("heading", { name: /área de trabalho/i }),
+    );
   });
 });

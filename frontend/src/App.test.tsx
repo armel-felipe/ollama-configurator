@@ -22,6 +22,9 @@ describe("App", () => {
 
     expect(screen.getByRole("heading", { name: /configure seu runtime/i })).toBeInTheDocument();
     expect(screen.getByRole("navigation", { name: /workspace/i })).toBeInTheDocument();
+    expect(screen.getByTestId("workspace-content-scroll")).toContainElement(
+      screen.getByRole("heading", { name: /configure seu runtime/i }),
+    );
   });
 
   it("updates the active section when a workspace area is selected", () => {
