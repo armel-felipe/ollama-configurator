@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import argparse
 import os
+import sys
 import threading
 import time
 import webbrowser
@@ -10,6 +12,15 @@ from urllib.request import urlopen
 import uvicorn
 
 from backend.config import settings
+
+
+def _parse_gateway_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument("--gateway", action="store_true")
+    parser.add_argument("--host", default=settings.host)
+    parser.add_argument("--port", type=int, default=settings.port)
+    args, _unknown = parser.parse_known_args(sys.argv[1:])
+    return args
 
 
 def _open_browser_when_ready(
@@ -32,6 +43,14 @@ def _open_browser_when_ready(
 
 
 if __name__ == "__main__":
+    runtime_args = _parse_gateway_args()
+    if runtime_args.gateway:
+        uvicorn.run(
+            "backend.gateway:app",
+            host=runtime_args.host,
+            port=runtime_args.port,
+        )
+        raise SystemExit(0)
     if os.environ.get("OLLAMA_CONFIGURATOR_OPEN_BROWSER") == "1":
         app_url = f"http://{settings.host}:{settings.port}/"
         health_url = f"http://{settings.host}:{settings.port}/api/health"

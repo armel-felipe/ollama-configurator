@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import backend.gateway_manager as gateway_manager_module
 from backend.gateway_manager import GatewayProcessManager
 
 
@@ -38,6 +39,31 @@ def test_start_launches_managed_gateway_on_default_port(tmp_path: Path) -> None:
     assert status.state == "starting"
     assert status.pid == 4242
     assert commands[0][-5:] == ["backend.gateway:app", "--host", "127.0.0.1", "--port", "11435"]
+
+
+def test_frozen_app_launches_gateway_through_its_gateway_mode(
+    tmp_path: Path, monkeypatch
+) -> None:
+    process = FakeProcess()
+    commands: list[list[str]] = []
+    monkeypatch.setattr(gateway_manager_module.sys, "frozen", True, raising=False)
+    monkeypatch.setattr(gateway_manager_module.sys, "executable", "/app/OllamaConfiguratorBackend")
+    manager = GatewayProcessManager(
+        root=tmp_path,
+        process_factory=lambda command, cwd: commands.append(command) or process,
+        health_checker=lambda: False,
+    )
+
+    manager.start()
+
+    assert commands == [[
+        "/app/OllamaConfiguratorBackend",
+        "--gateway",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "11435",
+    ]]
 
 
 def test_status_reports_unmanaged_listener_without_claiming_ownership(tmp_path: Path) -> None:

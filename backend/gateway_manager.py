@@ -85,6 +85,29 @@ def _external_process(host: str, port: int) -> tuple[int, str] | None:
     return (pid, process or "processo externo") if pid is not None else None
 
 
+def _gateway_command(host: str, port: int) -> list[str]:
+    """Build a gateway command for source and frozen application runtimes."""
+    if getattr(sys, "frozen", False):
+        return [
+            sys.executable,
+            "--gateway",
+            "--host",
+            host,
+            "--port",
+            str(port),
+        ]
+    return [
+        sys.executable,
+        "-m",
+        "uvicorn",
+        "backend.gateway:app",
+        "--host",
+        host,
+        "--port",
+        str(port),
+    ]
+
+
 class GatewayProcessManager:
     def __init__(
         self,
@@ -141,16 +164,7 @@ class GatewayProcessManager:
                 raise GatewayManagerError(current.detail or "A porta da gateway está ocupada")
             if self._process is not None and self._process.poll() is None:
                 return current
-            command = [
-                sys.executable,
-                "-m",
-                "uvicorn",
-                "backend.gateway:app",
-                "--host",
-                self.host,
-                "--port",
-                str(self.port),
-            ]
+            command = _gateway_command(self.host, self.port)
             try:
                 self._process = self._process_factory(command, self.root)
                 self._last_error = None
