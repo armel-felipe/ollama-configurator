@@ -10,7 +10,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_VERSION = "0.1.0.dev0"
+DEFAULT_VERSION = "0.1.0"
 
 
 def _manifest() -> dict[str, object]:
