@@ -46,14 +46,20 @@ function ollamaCommand(clientId: ConnectionClientId, model: string): string {
   return `ollama launch ${clientId} --model ${model}`;
 }
 
+function normalizeHost(host: string): string {
+  const markdownLink = host.trim().match(/^\[[^\]]+\]\(([^)]+)\)$/);
+  return markdownLink?.[1] ?? host.trim();
+}
+
 export function buildConnectionCommand(
   clientId: ConnectionClientId,
   model: string,
   shell: ShellKind,
   host: string,
 ): string {
+  const normalizedHost = normalizeHost(host);
   const environment = shell === "powershell"
-    ? `$env:OLLAMA_HOST="${host}"`
-    : `export OLLAMA_HOST=${host}`;
+    ? `$env:OLLAMA_HOST="${normalizedHost}"`
+    : `export OLLAMA_HOST=${normalizedHost}`;
   return `${environment}\n${ollamaCommand(clientId, model)}`;
 }

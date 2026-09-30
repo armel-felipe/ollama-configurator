@@ -40,4 +40,13 @@ describe("connection command catalog", () => {
     expect(buildConnectionCommand("terminal", "qwen3.8:27b-mlx", "posix", "http://127.0.0.1:11435"))
       .toBe("export OLLAMA_HOST=http://127.0.0.1:11435\nollama run qwen3.8:27b-mlx --verbose");
   });
+
+  it("normalizes a Markdown-formatted host before copying", () => {
+    expect(buildConnectionCommand(
+      "terminal",
+      "gemma4:26b-mlx",
+      "posix",
+      "[http://127.0.0.1:11435](http://127.0.0.1:11435)",
+    )).toBe("export OLLAMA_HOST=http://127.0.0.1:11435\nollama run gemma4:26b-mlx --verbose");
+  });
 });
