@@ -83,7 +83,7 @@ estado da gateway enquanto ela está ativa. Se o processo ou o endpoint deixar d
 responder, o status deixa de permanecer silenciosamente como ativo; a tela
 passa a refletir a nova condição e os controles de recuperação ficam visíveis.
 
-### Aplicação verificável do contexto — em validação
+### Aplicação verificável do contexto — concluído
 
 O botão **Aplicar no Ollama** agora consulta o runtime depois do recarregamento
 e compara o `num_ctx` solicitado com o `context_length` retornado por `/api/ps`.
@@ -95,6 +95,12 @@ não apresenta mais uma confirmação falsa.
 O critério de conclusão desta etapa é alterar 16K, 32K e 64K em um modelo
 carregado, confirmar cada valor no `ollama ps` e repetir a validação por uma
 chamada externa à gateway.
+
+Validação concluída em 30/09/2026 com `gemma4:26b-mlx`: as três alterações
+foram aplicadas por recarga real, retornaram `context_matches: true`, foram
+confirmadas em `/api/ps` e no próprio `OLLAMA_HOST=http://127.0.0.1:11435
+ollama ps`. Uma inferência externa via `/api/generate` também respondeu depois
+da troca para 64K, mantendo `context_length: 65536` no runtime.
 
 ## Etapa 8 — Configurações globais do servidor: concluída em macOS
 
@@ -264,3 +270,46 @@ os assets ficam locais para a UI continuar funcionando sem depender de rede.
 QA: 18 arquivos e 52 testes frontend aprovados, typecheck e build aprovados,
 verificação visual no navegador executada em tema claro e detector visual
 executado. O detector manteve somente o aviso preexistente sobre a fonte Inter.
+
+## Pendências atuais — atualizado em 30/09/2026
+
+### Tarefa 1 — validação do contexto efetivo: concluída
+
+O ciclo 16K → 32K → 64K foi validado com recarga real do Gemma4, confirmação
+em `/api/ps`, confirmação no comando `ollama ps` apontado para a gateway e uma
+inferência externa após a troca. Esta tarefa não está mais pendente.
+
+### Tarefa 2 — consolidar ações de ciclo de vida: concluída
+
+Remover a duplicidade entre **Iniciar gateway** e **Iniciar servidor**, deixar
+explícito o escopo de **Reiniciar aplicação** e separar visualmente salvar,
+aplicar, restaurar e reiniciar Ollama.
+
+Implementado e validado: o resumo operacional agora apenas direciona para a
+gateway, existe uma única ação real **Iniciar gateway**, os controles usam
+**Parar gateway**/**Reiniciar gateway**, **Reiniciar configurador** ficou
+separado e as ações globais foram agrupadas em **Configuração salva** e
+**Aplicação no Ollama**. QA: 19 arquivos e 56 testes frontend, typecheck,
+build e diff passaram.
+
+### Tarefa 3 — adaptador persistente para Windows: pendente
+
+Implementar persistência de configurações globais, reinício e reexecução do
+Ollama no Windows, com validação de logout, login e reinicialização.
+
+### Tarefa 4 — suíte formal de aceitação do MVP: pendente
+
+Criar os testes de aceitação, segurança, descoberta, configuração, reset,
+restart e validação ponta a ponta em macOS e Windows.
+
+### Tarefa 5 — empacotamento e distribuição: pendente
+
+Criar os instaladores macOS/Windows, atualização, desinstalação limpa,
+assinatura, checksums e pipeline de release.
+
+### Débitos menores de qualidade: pendentes
+
+- substituir os ícones fallback por logos oficiais verificados quando houver
+  fonte adequada;
+- excluir arquivos `._*` do escaneamento de testes no HD externo;
+- validar instalação, atualização e desinstalação em máquinas limpas.

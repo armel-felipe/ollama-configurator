@@ -66,12 +66,12 @@ test("restart action reports model profile reapplication", async () => {
   render(<ServerSettingsPage load={load} update={vi.fn()} restart={restart} reset={() => Promise.resolve(state)} restartApplication={vi.fn()} />);
 
   await screen.findByRole("heading", { name: "Configurações globais do Ollama" });
-  fireEvent.click(screen.getByRole("button", { name: "Aplicar alterações no Ollama" }));
+  fireEvent.click(screen.getByRole("button", { name: "Aplicar e reiniciar Ollama" }));
   fireEvent.click(screen.getByRole("button", { name: "Confirmar aplicação" }));
 
   await waitFor(() => expect(restart).toHaveBeenCalledTimes(1));
   expect(await screen.findByText(/perfis reaplicados/i)).toBeInTheDocument();
-  expect(screen.getByRole("button", { name: "Aplicar alterações no Ollama" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Aplicar e reiniciar Ollama" })).toBeDisabled();
 });
 
 test("offers context window presets for the global context", async () => {
@@ -96,4 +96,14 @@ test("publishes dirty and pending states to the workspace", async () => {
   fireEvent.click(screen.getByRole("button", { name: "Salvar configurações" }));
 
   await waitFor(() => expect(published.at(-1)).toMatchObject({ dirty: false, pendingRestart: true }));
+});
+
+test("separates configuration actions from Ollama application actions", async () => {
+  render(<ServerSettingsPage load={() => Promise.resolve(state)} update={vi.fn()} restart={vi.fn()} reset={() => Promise.resolve(state)} restartApplication={vi.fn()} />);
+
+  await screen.findByRole("heading", { name: "Configurações globais do Ollama" });
+  expect(screen.getByRole("group", { name: "Configuração salva" })).toBeInTheDocument();
+  expect(screen.getByRole("group", { name: "Aplicação no Ollama" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Reiniciar configurador" })).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Reiniciar aplicação" })).not.toBeInTheDocument();
 });

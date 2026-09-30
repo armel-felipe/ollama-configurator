@@ -75,13 +75,13 @@ export function GatewayControls({ getStatus, start, stop, restart, releaseExtern
       {error ? <p role="alert">{error}</p> : null}
       {!unmanaged && status.state !== "running" ? (
         <button type="button" onClick={() => void action(start)} disabled={busy || status.state === "starting"}>
-          Iniciar servidor
+          Iniciar gateway
         </button>
       ) : null}
       {status.state === "running" ? (
         <>
-          <button type="button" onClick={() => void action(stop)} disabled={busy}>Parar servidor</button>
-          <button type="button" onClick={() => void action(restart)} disabled={busy}>Reiniciar servidor</button>
+          <button type="button" onClick={() => void action(stop)} disabled={busy}>Parar gateway</button>
+          <button type="button" onClick={() => void action(restart)} disabled={busy}>Reiniciar gateway</button>
         </>
       ) : null}
     </section>

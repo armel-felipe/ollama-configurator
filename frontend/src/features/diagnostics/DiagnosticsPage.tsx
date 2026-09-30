@@ -68,7 +68,7 @@ export function DiagnosticsPage({ loadDiagnostics }: Props) {
     runtime: modelView.runtime,
     runtimeError: modelView.error,
     actions: {
-      startGateway: scrollAction("Iniciar gateway", "gateway", "gateway-section"),
+      startGateway: scrollAction("Ver gateway", "gateway", "gateway-section"),
       retryGateway: scrollAction("Revisar gateway", "gateway", "gateway-section"),
       saveServer: scrollAction("Salvar configurações", "server", "server-section"),
       applyServer: scrollAction("Aplicar no Ollama", "server", "server-section"),

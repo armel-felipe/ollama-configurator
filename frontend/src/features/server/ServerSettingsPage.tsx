@@ -51,7 +51,7 @@ export function ServerSettingsPage({ load, update, restart, reset, restartApplic
       setBusy(false);
     }
   };
-  if (error) return <section id="server-section" aria-labelledby="server-settings-heading"><h2 id="server-settings-heading">Configurações globais do Ollama</h2><p className="server-error" aria-live="polite">{error}</p><div className="server-recovery-actions"><button type="button" onClick={refresh}>Recarregar configurações globais</button><button type="button" onClick={() => void restartApp()} disabled={busy}>Reiniciar aplicação</button></div></section>;
+  if (error) return <section id="server-section" aria-labelledby="server-settings-heading"><h2 id="server-settings-heading">Configurações globais do Ollama</h2><p className="server-error" aria-live="polite">{error}</p><div className="server-recovery-actions"><button type="button" onClick={refresh}>Recarregar configurações globais</button><button type="button" onClick={() => void restartApp()} disabled={busy}>Reiniciar configurador</button></div></section>;
   if (!state) return <section id="server-section" aria-labelledby="server-settings-heading"><h2 id="server-settings-heading">Configurações globais do Ollama</h2><p>Carregando configurações do servidor…</p></section>;
 
   const change = (name: string, value: Value) => {
@@ -93,9 +93,9 @@ export function ServerSettingsPage({ load, update, restart, reset, restartApplic
     <section className="server-settings-page" id="server-section" aria-labelledby="server-settings-heading">
       <div className="page-heading">
         <div><div className="section-kicker">Servidor</div><h2 id="server-settings-heading">Configurações globais do Ollama</h2><p>Defina valores usados por qualquer modelo e cliente que passe pelo runtime gerenciado.</p></div>
-        <div className="server-heading-actions"><span className={`server-availability ${state.available ? "is-available" : ""}`}>{state.available ? "Servidor disponível" : "Servidor indisponível"}</span><button type="button" onClick={() => void restartApp()} disabled={busy}>Reiniciar aplicação</button></div>
+        <div className="server-heading-actions"><span className={`server-availability ${state.available ? "is-available" : ""}`}>{state.available ? "Servidor disponível" : "Servidor indisponível"}</span><button type="button" onClick={() => void restartApp()} disabled={busy}>Reiniciar configurador</button></div>
       </div>
-      {state.pending_restart ? <p className="pending-banner" role="status">Alterações do Ollama aguardando aplicação. Use “Aplicar alterações no Ollama” para efetivá-las.</p> : null}
+      {state.pending_restart ? <p className="pending-banner" role="status">Alterações do Ollama aguardando aplicação. Use “Aplicar e reiniciar Ollama” para efetivá-las.</p> : null}
       <div className="server-settings-grid">
         {entries.map(([name, capability]) => (
           <article className="server-setting-card" key={name}>
@@ -111,7 +111,17 @@ export function ServerSettingsPage({ load, update, restart, reset, restartApplic
       </div>
       <div className="server-actions">
         <span>{dirty ? "Alterações não salvas" : message ?? "Perfil global salvo"}</span>
-        <div><button type="button" onClick={() => void runReset()} disabled={busy}>Restaurar padrões</button><button type="button" onClick={() => setConfirmRestart(true)} disabled={busy || state.pending_restart === false}>Aplicar alterações no Ollama</button><button className="primary-action" type="button" onClick={() => void save()} disabled={busy || !dirty}>Salvar configurações</button></div>
+        <div className="server-action-groups">
+          <div className="server-action-group" role="group" aria-labelledby="server-config-actions-label">
+            <span id="server-config-actions-label">Configuração salva</span>
+            <button type="button" onClick={() => void runReset()} disabled={busy}>Restaurar padrões</button>
+            <button className="primary-action" type="button" onClick={() => void save()} disabled={busy || !dirty}>Salvar configurações</button>
+          </div>
+          <div className="server-action-group" role="group" aria-labelledby="server-runtime-actions-label">
+            <span id="server-runtime-actions-label">Aplicação no Ollama</span>
+            <button type="button" onClick={() => setConfirmRestart(true)} disabled={busy || state.pending_restart === false}>Aplicar e reiniciar Ollama</button>
+          </div>
+        </div>
       </div>
       {error ? <p role="alert">{error}</p> : null}
       {confirmRestart ? <div className="restart-confirm" role="dialog" aria-labelledby="restart-title"><h3 id="restart-title">Aplicar alterações no Ollama?</h3><p>O Ollama será reiniciado e os perfis salvos dos modelos serão reaplicados.</p><button type="button" onClick={() => setConfirmRestart(false)}>Cancelar</button><button className="primary-action" type="button" onClick={() => void runRestart()}>Confirmar aplicação</button></div> : null}

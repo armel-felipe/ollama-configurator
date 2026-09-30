@@ -181,8 +181,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .server-setting-card small { color: var(--text-soft); font-size: 10px; }
 .server-switch { display: inline-flex; align-items: center; gap: 9px; color: var(--text); font-size: 12px; font-weight: 700; cursor: pointer; }
 .server-switch input { width: 16px; height: 16px; accent-color: var(--accent); }
-.server-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 4px; color: var(--text-muted); font-size: 12px; }
-.server-actions > div { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
+.server-actions { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding-top: 4px; color: var(--text-muted); font-size: 12px; }
+.server-action-groups { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; }
+.server-action-group { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-subtle); }
+.server-action-group > span { width: 100%; color: var(--text-muted); font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .server-actions button, .restart-confirm button { min-height: 36px; padding: 0 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-raised); color: var(--text-muted); cursor: pointer; font-size: 11px; font-weight: 700; }
 .server-actions button:hover, .restart-confirm button:hover { border-color: var(--border-strong); background: var(--surface-subtle); color: var(--text); }
 .restart-confirm { display: grid; gap: 10px; padding: 17px; border: 1px solid var(--border-strong); border-radius: var(--radius-md); background: var(--surface-subtle); }
@@ -269,7 +271,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .server-settings-page .page-heading, .server-actions { display: block; }
   .server-availability { display: inline-block; margin-top: 12px; }
   .server-settings-grid { grid-template-columns: 1fr; }
-  .server-actions > div { justify-content: flex-start; margin-top: 12px; }
+  .server-action-groups { justify-content: flex-start; margin-top: 12px; }
   .logs-toolbar { align-items: flex-start; flex-direction: column; }
   .log-entry { grid-template-columns: 62px 1fr; }
   .log-entry span { grid-column: 1 / -1; }
