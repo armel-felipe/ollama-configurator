@@ -47,6 +47,7 @@
 }
 
 * { box-sizing: border-box; }
+html, body, #root { height: 100%; }
 body { margin: 0; min-width: 320px; background: var(--surface); color: var(--text); }
 button, input, textarea, select { font: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
@@ -54,7 +55,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 
 .app-shell { height: 100dvh; min-height: 100vh; overflow: hidden; background: var(--surface); }
 .app-frame { display: grid; grid-template-columns: 232px minmax(0, 1fr); height: 100%; min-height: 0; }
-.app-sidebar { display: flex; min-height: 0; flex-direction: column; border-right: 1px solid var(--border); background: var(--surface-raised); }
+.app-sidebar { position: sticky; top: 0; display: flex; height: 100dvh; max-height: 100dvh; min-height: 0; flex-direction: column; border-right: 1px solid var(--border); background: var(--surface-raised); }
 .sidebar-brand { display: grid; flex: 0 0 auto; gap: 16px; padding: 22px 18px; border-bottom: 1px solid var(--border); }
 .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; font-size: 14px; letter-spacing: -.01em; }
 .brand strong { font-weight: 750; }
@@ -75,7 +76,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .nav-footer { display: flex; align-items: center; gap: 7px; margin-top: auto; padding: 14px 12px 0; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 11px; }
 .nav-footer span:last-child { margin-left: auto; color: var(--text-soft); }
 .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
-.workspace-content { width: 100%; min-width: 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 42px clamp(24px, 5vw, 72px) 80px; }
+.workspace-content { width: 100%; height: 100dvh; min-width: 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 42px clamp(24px, 5vw, 72px) 80px; }
 .page-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 30px; }
 .page-heading h1 { margin: 5px 0 8px; font-size: clamp(28px, 4vw, 40px); letter-spacing: -.045em; line-height: 1.05; }
 .page-heading p { max-width: 52ch; margin: 0; color: var(--text-muted); font-size: 14px; line-height: 1.55; }
@@ -245,13 +246,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 @media (max-width: 760px) {
   .app-shell { height: auto; min-height: 100vh; overflow: visible; }
   .app-frame { display: block; height: auto; }
-  .app-sidebar { display: block; border-right: 0; }
+  .app-sidebar { position: static; display: block; height: auto; max-height: none; border-right: 0; }
   .sidebar-brand { padding: 16px; }
   .sidebar-scroll { display: block; overflow: visible; padding: 0; }
   .workspace-nav { flex-direction: row; align-items: center; overflow-x: auto; padding: 8px 12px; border-right: 0; border-bottom: 1px solid var(--border); }
   .nav-caption, .nav-footer { display: none; }
   .nav-item { flex: 0 0 auto; min-height: 36px; }
-  .workspace-content { overflow: visible; padding: 28px 18px 56px; }
+  .workspace-content { height: auto; overflow: visible; padding: 28px 18px 56px; }
   .page-heading { display: block; margin-bottom: 24px; }
   .ollama-status { padding-top: 16px; }
   .operational-summary-heading { display: block; }
