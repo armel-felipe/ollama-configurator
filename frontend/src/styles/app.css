@@ -59,7 +59,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; font-size: 14px; letter-spacing: -.01em; }
 .brand strong { font-weight: 750; }
 .brand-mark { display: grid; place-items: center; width: 27px; height: 27px; border-radius: 8px; background: var(--text); color: var(--surface-raised); }
-.ollama-logo { width: 21px; height: 21px; }
+.ollama-logo { display: block; width: 22px; height: 22px; object-fit: contain; filter: invert(1); }
+:root[data-theme="dark"] .ollama-logo { filter: none; }
 .topbar-actions { display: flex; align-items: center; gap: 18px; }
 .theme-toggle { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 11px; background: var(--surface-raised); color: var(--text-muted); cursor: pointer; font-size: 12px; }
 .theme-toggle:hover { color: var(--text); border-color: var(--border-strong); background: var(--surface-subtle); }
@@ -219,12 +220,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .connection-card { display: flex; align-items: center; gap: 16px; min-height: 96px; padding: 18px 20px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface-raised); color: var(--text); cursor: pointer; text-align: left; box-shadow: var(--shadow-sm); transition: border-color .15s ease, background .15s ease, transform .15s ease; }
 .connection-card:hover { border-color: var(--border-strong); background: var(--surface-subtle); transform: translateY(-1px); }
 .connection-card.is-selected { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent); }
-.connection-card-mark { display: grid; place-items: center; width: 42px; height: 42px; flex: 0 0 auto; border-radius: 12px; background: var(--surface-subtle); color: var(--text); }
-.connection-icon { width: 25px; height: 25px; }
+.connection-card-mark { display: grid; place-items: center; width: 44px; height: 44px; flex: 0 0 auto; border-radius: 12px; background: var(--surface-subtle); }
+.connection-icon { display: block; width: 28px; height: 28px; object-fit: contain; }
 .connection-card-state { margin-left: auto; color: var(--text-soft); font-size: 10px; font-weight: 750; text-transform: uppercase; letter-spacing: .07em; opacity: 0; transition: opacity .15s ease, color .15s ease; }
 .connection-card:hover .connection-card-state, .connection-card.is-selected .connection-card-state { opacity: 1; }
 .connection-card.is-selected .connection-card-state { color: var(--accent); }
-.connection-card.is-selected .connection-card-mark { background: var(--accent); color: #fff; }
+.connection-card.is-selected .connection-card-mark { background: var(--surface-subtle); }
 .connection-card-copy { display: grid; gap: 5px; min-width: 0; }
 .connection-card-copy strong { font-size: 15px; letter-spacing: -.02em; }
 .connection-card-copy small { overflow: hidden; color: var(--text-muted); font-size: 11px; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }

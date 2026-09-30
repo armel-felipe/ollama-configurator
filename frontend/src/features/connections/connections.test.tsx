@@ -9,10 +9,11 @@ describe("ConnectionsPage", () => {
   afterEach(() => cleanup());
 
   it("renders all fifteen client cards and explains when no model is selected", () => {
-    render(<ConnectionsPage models={models} selectedModel={undefined} gateway={gateway} onSelectModel={() => undefined} />);
+    const { container } = render(<ConnectionsPage models={models} selectedModel={undefined} gateway={gateway} onSelectModel={() => undefined} />);
 
     expect(screen.getByRole("heading", { name: /conectar seus clientes/i })).toBeInTheDocument();
     expect(within(screen.getByRole("group", { name: /clientes ollama/i })).getAllByRole("button")).toHaveLength(15);
+    expect(container.querySelectorAll(".connection-card [data-brand-icon]")).toHaveLength(15);
     expect(screen.getByText(/selecione um modelo antes de copiar/i)).toBeInTheDocument();
   });
 
