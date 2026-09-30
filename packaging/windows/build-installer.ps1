@@ -11,11 +11,15 @@ New-Item -ItemType Directory -Force -Path $OutputPath | Out-Null
 if (Test-Path $Payload) { Remove-Item $Payload -Recurse -Force }
 
 & uv run python (Join-Path $Root "scripts/build_backend.py") --output (Join-Path $OutputPath "backend")
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+if (-not (Test-Path (Join-Path $OutputPath "backend/OllamaConfiguratorBackend"))) {
+  throw "Backend build did not produce OllamaConfiguratorBackend."
+}
 $FrontendArgs = @("--output", (Join-Path $OutputPath "frontend"))
 if ($SkipFrontendInstall) { $FrontendArgs += "--skip-install" }
 & node (Join-Path $Root "scripts/build_frontend.mjs") @FrontendArgs
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+if (-not (Test-Path (Join-Path $OutputPath "frontend/manifest.json"))) {
+  throw "Frontend build did not produce manifest.json."
+}
 
 New-Item -ItemType Directory -Force -Path $Payload | Out-Null
 Copy-Item -Path (Join-Path $OutputPath "backend") -Destination $Payload -Recurse -Force
