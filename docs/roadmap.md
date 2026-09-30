@@ -314,10 +314,18 @@ typecheck, build de produção e inspeção visual no navegador aprovados. A
 execução nativa em Windows ainda depende de uma máquina Windows para validar
 registro, logout/login, reinício e instalação.
 
-### Tarefa 5 — empacotamento e distribuição: pendente
+### Tarefa 5 — empacotamento e distribuição: implementada, publicação nativa pendente
 
-Criar os instaladores macOS/Windows, atualização, desinstalação limpa,
-assinatura, checksums e pipeline de release.
+Criados os builders de backend/frontend, bundle `.app`/`.dmg` para macOS,
+payload portátil Windows com instalação/desinstalação explícitas, helper de
+desinstalação segura, workflows nativos e documentação de release, checksums,
+assinatura e notarização. O bundle empacotado serve o frontend localmente e
+abre a UI no navegador.
+
+QA local: 83 testes backend, incluindo 4 testes de empacotamento, Ruff, mypy,
+typecheck, build frontend e inspeção visual aprovados. A publicação final de
+artefatos assinados e a validação em máquinas limpas ainda dependem dos
+runners/hosts nativos de macOS e Windows.
 
 ### Débitos menores de qualidade: pendentes
 

@@ -65,3 +65,11 @@ cd frontend && npm test -- --run
 ```
 
 Veja `docs/development-setup.md` e `docs/dependencies.md` para detalhes.
+
+## Empacotamento
+
+O fluxo de release e os limites de instalação/desinstalação estão em
+`docs/packaging.md`, `docs/uninstall.md` e `docs/release-process.md`. O
+empacotamento exige PyInstaller e deve ser executado pelos scripts nativos de
+`packaging/macos` ou `packaging/windows`; o uso diário continua sendo local e
+não exige esses artefatos.

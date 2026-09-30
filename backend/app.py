@@ -1,7 +1,11 @@
+import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from backend.api.application_routes import router as application_router
@@ -54,6 +58,17 @@ app.include_router(model_settings_router)
 app.include_router(model_runtime_router)
 app.include_router(reset_router)
 app.include_router(server_settings_router)
+
+
+frontend_dir = os.environ.get("OLLAMA_CONFIGURATOR_FRONTEND_DIR")
+if frontend_dir:
+    frontend_path = Path(frontend_dir).expanduser().resolve()
+    if (frontend_path / "index.html").is_file():
+        app.mount("/assets", StaticFiles(directory=frontend_path / "assets"), name="assets")
+
+        @app.get("/", include_in_schema=False)
+        def frontend_index() -> FileResponse:
+            return FileResponse(frontend_path / "index.html")
 
 
 @app.get("/api/health", response_model=HealthResponse)
