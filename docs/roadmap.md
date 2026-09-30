@@ -292,15 +292,27 @@ separado e as ações globais foram agrupadas em **Configuração salva** e
 **Aplicação no Ollama**. QA: 19 arquivos e 56 testes frontend, typecheck,
 build e diff passaram.
 
-### Tarefa 3 — adaptador persistente para Windows: pendente
+### Tarefa 3 — adaptador persistente para Windows: implementado, validação nativa pendente
 
 Implementar persistência de configurações globais, reinício e reexecução do
 Ollama no Windows, com validação de logout, login e reinicialização.
 
-### Tarefa 4 — suíte formal de aceitação do MVP: pendente
+O adaptador foi implementado usando `HKCU\\Environment`, com reinício
+controlado do aplicativo Ollama e seleção automática por plataforma. QA local:
+76 testes backend, Ruff, mypy e diff passaram. A validação nativa de logout,
+login e reboot ainda depende de executar a aplicação em um host Windows.
 
-Criar os testes de aceitação, segurança, descoberta, configuração, reset,
-restart e validação ponta a ponta em macOS e Windows.
+### Tarefa 4 — suíte formal de aceitação do MVP: implementada, validação nativa pendente
+
+Criada a suíte formal de aceitação do MVP cobrindo descoberta, hardware,
+configuração de modelo, aplicação de opções, persistência global, reinício,
+reset e confirmação do runtime efetivo. Também foram adicionados testes de
+segurança local-only para impedir rotas arbitrárias de shell/execução.
+
+QA local: 79 testes backend aprovados, Ruff, mypy, 56 testes frontend,
+typecheck, build de produção e inspeção visual no navegador aprovados. A
+execução nativa em Windows ainda depende de uma máquina Windows para validar
+registro, logout/login, reinício e instalação.
 
 ### Tarefa 5 — empacotamento e distribuição: pendente
 
