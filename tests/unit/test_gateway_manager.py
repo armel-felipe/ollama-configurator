@@ -41,13 +41,33 @@ def test_start_launches_managed_gateway_on_default_port(tmp_path: Path) -> None:
 
 
 def test_status_reports_unmanaged_listener_without_claiming_ownership(tmp_path: Path) -> None:
-    manager = GatewayProcessManager(root=tmp_path, health_checker=lambda: True)
+    manager = GatewayProcessManager(
+        root=tmp_path,
+        health_checker=lambda: True,
+        external_process=lambda: (4242, "ollama"),
+    )
 
     status = manager.status()
 
     assert status.state == "external"
-    assert status.pid is None
+    assert status.pid == 4242
+    assert status.process == "ollama"
     assert "processo" in status.detail.lower()
+
+
+def test_release_external_listener_terminates_only_identified_process(tmp_path: Path) -> None:
+    signals: list[tuple[int, int]] = []
+    manager = GatewayProcessManager(
+        root=tmp_path,
+        health_checker=lambda: True,
+        external_process=lambda: (4242, "ollama"),
+        signal_sender=lambda pid, signal: signals.append((pid, signal)),
+    )
+
+    status = manager.release_external()
+
+    assert status.state == "stopped"
+    assert signals and signals[0][0] == 4242
 
 
 def test_stop_terminates_only_the_managed_process(tmp_path: Path) -> None:

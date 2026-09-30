@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from backend.logs import LOG_STORE
 from backend.os_adapters.base import RestartResult, SystemAdapter
 from backend.persistence.store import ConfigStore
 from backend.server_settings.catalog import (
@@ -59,6 +60,12 @@ class ServerSettingsService:
         server["_restart_pending"] = True
         config["server"] = server
         self.store.save(config)
+        LOG_STORE.emit(
+            "configurator",
+            "info",
+            "Configurações globais salvas",
+            {key: server.get(key) for key in patch},
+        )
         return self.get()
 
     def reset(self) -> ServerSettingsState:
@@ -69,6 +76,7 @@ class ServerSettingsService:
                 self.adapter.remove_environment(name)
         config["server"] = {"_restart_pending": True}
         self.store.save(config)
+        LOG_STORE.emit("configurator", "info", "Configurações globais restauradas para padrão")
         return self.get()
 
     def restart(self) -> RestartResult:

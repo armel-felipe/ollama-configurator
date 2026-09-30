@@ -15,9 +15,9 @@ describe("DiagnosticsPage", () => {
     );
 
     expect(screen.getByText(/carregando/i)).toBeInTheDocument();
-    await waitFor(() => expect(screen.getByText("qwen:latest")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getAllByText("qwen:latest").length).toBeGreaterThan(0));
     expect(screen.getByText(/ollama 0\.5\.7/i)).toBeInTheDocument();
-    expect(screen.getByText(/macos/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/macos/i).length).toBeGreaterThan(0);
   });
 
   it("shows an actionable error when discovery fails", async () => {

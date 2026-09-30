@@ -46,7 +46,8 @@ Ollama continua em `127.0.0.1:11434`; não exponha diretamente essa porta.
 Para o cliente Ollama nativo, configure:
 
 ```bash
-OLLAMA_HOST=http://<IP-TAILSCALE-DO-HOST>:11435 ollama run gemma4:26b-mlx
+export OLLAMA_HOST=http://<IP-TAILSCALE-DO-HOST>:11435
+ollama run gemma4:26b-mlx --verbose
 ```
 
 Nesse modo, `ollama run` usa o endpoint `/api/chat` da gateway e recebe o perfil

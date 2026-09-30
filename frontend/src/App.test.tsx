@@ -9,6 +9,7 @@ vi.mock("./features/diagnostics/DiagnosticsPage", () => ({
       <div id="models-section" />
       <section id="server-section" />
       <section id="diagnostics-section" />
+      <section id="connections-section" />
     </>
   ),
 }));

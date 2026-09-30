@@ -3,6 +3,7 @@ from collections.abc import Iterator
 from typing import Any, Protocol
 from uuid import uuid4
 
+from backend.logs import LOG_STORE, LogStore
 from backend.persistence.store import ConfigStore
 
 
@@ -45,9 +46,15 @@ class GatewayClient(Protocol):
 
 
 class GatewayService:
-    def __init__(self, store: ConfigStore, client: GatewayClient) -> None:
+    def __init__(
+        self,
+        store: ConfigStore,
+        client: GatewayClient,
+        log_store: LogStore = LOG_STORE,
+    ) -> None:
         self.store = store
         self.client = client
+        self.log_store = log_store
 
     def generate(self, payload: dict[str, Any]) -> dict[str, Any]:
         model, options, think, keep_alive = self._profile(payload)
@@ -195,6 +202,15 @@ class GatewayService:
         )
         think = saved.get("think", payload.get("think"))
         keep_alive = saved.get("keep_alive", payload.get("keep_alive"))
+        server = self.store.load().get("server", {})
+        metadata = {
+            "model": model,
+            "think": think,
+            "num_ctx": options.get("num_ctx"),
+            "kv_cache": server.get("OLLAMA_KV_CACHE_TYPE"),
+            "stream": bool(payload.get("stream", False)),
+        }
+        self.log_store.emit("gateway", "info", "Perfil aplicado à requisição", metadata)
         return model, options, think, keep_alive
 
     @staticmethod

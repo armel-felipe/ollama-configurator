@@ -114,7 +114,9 @@ def create_gateway_app(
     @app.post("/api/show")
     def show(request: Request, payload: dict[str, Any]) -> dict[str, Any]:
         authorize(request)
-        model = payload.get("model")
+        # `ollama run` sends the model identifier as `name`, while other
+        # Ollama-compatible clients commonly send `model`.
+        model = payload.get("model", payload.get("name"))
         if not isinstance(model, str):
             raise HTTPException(status_code=400, detail="model must be a non-empty string")
         return selected_client.show_model(model)

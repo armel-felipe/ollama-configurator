@@ -17,6 +17,7 @@ describe("AppShell", () => {
     expect(screen.getByRole("link", { name: /modelos/i })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: /servidor/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /diagnóstico/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /conectar/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /área de trabalho/i })).toBeInTheDocument();
     expect(screen.queryByText(/ollama conectado/i)).not.toBeInTheDocument();
   });

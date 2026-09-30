@@ -1,0 +1,99 @@
+import { useState } from "react";
+import type { GatewayStatus } from "../../api/client";
+import {
+  buildConnectionCommand,
+  connectionClients,
+  type ConnectionClientId,
+  type ShellKind,
+} from "./connectionCommands";
+import { ConnectionIcon } from "./ConnectionIcon";
+
+type Model = { name: string; size?: number };
+
+type Props = {
+  models: Model[];
+  selectedModel?: string;
+  gateway: GatewayStatus | null;
+  onSelectModel: (model: string) => void;
+};
+
+const fallbackHost = "http://127.0.0.1:11435";
+
+export function ConnectionsPage({ models, selectedModel, gateway, onSelectModel }: Props) {
+  const [selectedClient, setSelectedClient] = useState<ConnectionClientId>("terminal");
+  const [shell, setShell] = useState<ShellKind>("posix");
+  const [copiedClient, setCopiedClient] = useState<ConnectionClientId | null>(null);
+  const host = gateway ? `http://${gateway.host}:${gateway.port}` : fallbackHost;
+  const client = connectionClients.find((item) => item.id === selectedClient) ?? connectionClients[0];
+  const gatewayRunning = gateway?.state === "running";
+
+  async function copyCommand(clientId: ConnectionClientId) {
+    if (!selectedModel) return;
+    const nextCommand = buildConnectionCommand(clientId, selectedModel, shell, host);
+    await navigator.clipboard.writeText(nextCommand);
+    setCopiedClient(clientId);
+    window.setTimeout(() => setCopiedClient(null), 2200);
+  }
+
+  return (
+    <section className="connections-page" id="connections-section" aria-labelledby="connections-heading">
+      <div className="page-heading connections-heading">
+        <div>
+          <div className="section-kicker">Conexões</div>
+          <h1 id="connections-heading">Conectar seus clientes</h1>
+          <p>Gere o comando pronto para usar seus clientes Ollama com o gateway configurado.</p>
+        </div>
+        <div className={`connection-host${gatewayRunning ? " is-running" : ""}`}>
+          <span className="status-dot" aria-hidden="true" />
+          Gateway {gatewayRunning ? "ativo" : "parado"} · {host}
+        </div>
+      </div>
+
+      <div className="connections-toolbar">
+        <label className="connection-select">
+          <span>Modelo</span>
+          <select aria-label="Modelo" value={selectedModel ?? ""} onChange={(event) => onSelectModel(event.target.value)}>
+            <option value="" disabled>Selecione um modelo</option>
+            {models.map((model) => <option key={model.name} value={model.name}>{model.name}</option>)}
+          </select>
+        </label>
+        <label className="connection-select">
+          <span>Shell</span>
+          <select aria-label="Shell" value={shell} onChange={(event) => setShell(event.target.value as ShellKind)}>
+            <option value="posix">macOS / Linux</option>
+            <option value="powershell">Windows PowerShell</option>
+          </select>
+        </label>
+      </div>
+
+      <div className="connection-grid" role="group" aria-label="Clientes Ollama">
+        {connectionClients.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            className={`connection-card${selectedClient === item.id ? " is-selected" : ""}`}
+            aria-pressed={selectedClient === item.id}
+            onClick={() => { setSelectedClient(item.id); void copyCommand(item.id); }}
+          >
+            <span className="connection-card-mark"><ConnectionIcon id={item.id} /></span>
+            <span className="connection-card-copy">
+              <strong>{item.label}</strong>
+              <small>{item.description}</small>
+            </span>
+            <span className="connection-card-state">{copiedClient === item.id ? "Copiado" : "Copiar"}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="connection-guidance" role="status" aria-live="polite">
+        <span className="connection-guidance-mark"><ConnectionIcon id={selectedClient} /></span>
+        <div>
+          <strong>{copiedClient ? `Comando do ${client.label} copiado` : "Clique em um card para copiar o comando"}</strong>
+          <p>{selectedModel ? `Modelo ${selectedModel} · ${host}` : "Selecione um modelo antes de copiar um comando."}</p>
+        </div>
+        {!gatewayRunning && <span className="connection-warning"><span className="status-dot" aria-hidden="true" /> Gateway parada</span>}
+      </div>
+      <span className="sr-only" aria-live="polite">{copiedClient ? "Comando copiado para a área de transferência" : ""}</span>
+    </section>
+  );
+}

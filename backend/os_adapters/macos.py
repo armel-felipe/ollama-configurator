@@ -51,8 +51,18 @@ class MacOSAdapter:
 
     def restart_ollama(self) -> RestartResult:
         try:
-            self._run(["/usr/bin/osascript", "-e", 'tell application "Ollama" to quit'])
-            self._run(["/usr/bin/open", "-a", "Ollama"])
+            quit_command = ["/usr/bin/osascript", "-e", 'tell application "Ollama" to quit']
+            try:
+                self._run(quit_command)
+            except subprocess.CalledProcessError:
+                # Some Ollama desktop versions reject AppleScript quit even
+                # while the app is running. Fall back to the process name so
+                # environment changes can still be applied on restart.
+                self._run(["/usr/bin/killall", "Ollama"])
+            try:
+                self._run(["/usr/bin/open", "-a", "Ollama"])
+            except subprocess.CalledProcessError:
+                self._run(["/usr/bin/open", "/Applications/Ollama.app"])
         except (OSError, subprocess.SubprocessError) as error:
             return RestartResult(False, f"Não foi possível reiniciar o Ollama: {error}")
         return RestartResult(True, "Ollama reiniciado; aguardando nova disponibilidade")

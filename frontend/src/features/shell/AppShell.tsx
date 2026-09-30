@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import { useTheme } from "./ThemeProvider";
+import { OllamaLogo } from "./OllamaLogo";
 
-export type WorkspaceSection = "models" | "server" | "diagnostics";
+export type WorkspaceSection = "models" | "server" | "diagnostics" | "connections";
 
 type Props = {
   children: ReactNode;
@@ -13,6 +14,7 @@ const sections: Array<{ id: WorkspaceSection; label: string; icon: string }> = [
   { id: "models", label: "Modelos", icon: "◇" },
   { id: "server", label: "Servidor", icon: "◌" },
   { id: "diagnostics", label: "Diagnóstico", icon: "⌁" },
+  { id: "connections", label: "Conectar", icon: "↗" },
 ];
 
 export function AppShell({ children, selectedSection, onSectionChange }: Props) {
@@ -23,7 +25,7 @@ export function AppShell({ children, selectedSection, onSectionChange }: Props) 
     <div className="app-shell">
       <header className="topbar">
         <a className="brand" href="#models" onClick={() => onSectionChange("models")}>
-          <span className="brand-mark" aria-hidden="true">O</span>
+          <span className="brand-mark"><OllamaLogo /></span>
           <span>Ollama <strong>Configurator</strong></span>
         </a>
         <div className="topbar-actions">

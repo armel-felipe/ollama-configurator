@@ -1,3 +1,4 @@
+import subprocess
 from pathlib import Path
 
 from backend.os_adapters.macos import MacOSAdapter
@@ -45,3 +46,36 @@ def test_macos_adapter_reports_permission_failure(tmp_path: Path) -> None:
 
     assert result.success is False
     assert "denied" in result.detail
+
+
+def test_macos_adapter_falls_back_when_applescript_quit_is_rejected(tmp_path: Path) -> None:
+    commands: list[list[str]] = []
+
+    def runner(command: list[str]) -> None:
+        commands.append(command)
+        if command[0] == "/usr/bin/osascript":
+            raise subprocess.CalledProcessError(1, command)
+
+    adapter = MacOSAdapter(launch_agent_path=tmp_path / "managed.plist", command_runner=runner)
+
+    result = adapter.restart_ollama()
+
+    assert result.success is True
+    assert ["/usr/bin/killall", "Ollama"] in commands
+    assert ["/usr/bin/open", "-a", "Ollama"] in commands
+
+
+def test_macos_adapter_falls_back_to_app_bundle_when_named_open_is_rejected(tmp_path: Path) -> None:
+    commands: list[list[str]] = []
+
+    def runner(command: list[str]) -> None:
+        commands.append(command)
+        if command[:3] == ["/usr/bin/open", "-a", "Ollama"]:
+            raise subprocess.CalledProcessError(1, command)
+
+    adapter = MacOSAdapter(launch_agent_path=tmp_path / "managed.plist", command_runner=runner)
+
+    result = adapter.restart_ollama()
+
+    assert result.success is True
+    assert ["/usr/bin/open", "/Applications/Ollama.app"] in commands

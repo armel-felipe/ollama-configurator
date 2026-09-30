@@ -22,14 +22,17 @@ porta gerenciada do projeto, preservando o perfil aplicado pelo gateway.
 
 ## Saída obrigatória para macOS/Linux
 
-Entregue primeiro um único comando completo, com o modelo real substituído:
+Entregue duas linhas separadas, exatamente nesta ordem. A primeira linha deve
+definir `OLLAMA_HOST` e a segunda deve executar o modelo. Não combine a variável
+de ambiente com `ollama run` na mesma linha:
 
 ```bash
-OLLAMA_HOST=http://127.0.0.1:11435 ollama run <modelo> --verbose
+export OLLAMA_HOST=http://127.0.0.1:11435
+ollama run <modelo> --verbose
 ```
 
-O `--verbose` deve ficar no final do comando. Não use barra invertida para
-quebrar linha, a menos que o usuário peça explicitamente um comando multilinha.
+O `--verbose` deve ficar no final da segunda linha. Não use barra invertida
+para unir as duas linhas.
 
 ## Saída para Windows PowerShell
 
@@ -47,7 +50,8 @@ Se for útil, informe que a variável vale para a sessão atual do PowerShell.
 Para um cliente remoto, substitua somente o host:
 
 ```bash
-OLLAMA_HOST=http://<IP-TAILSCALE-DO-HOST>:11435 ollama run <modelo> --verbose
+export OLLAMA_HOST=http://<IP-TAILSCALE-DO-HOST>:11435
+ollama run <modelo> --verbose
 ```
 
 Avise que isso exige o gateway escutando em um endereço acessível pelo
@@ -57,7 +61,8 @@ documentação de segurança. Não recomende expor `0.0.0.0` sem explicar o risc
 ## Diagnóstico de erro
 
 - `400 Bad Request`: confirme se o gateway está realmente ativo em `11435`,
-  se o modelo existe e se o comando não contém uma quebra de linha indevida.
+  se o modelo existe e se as duas linhas foram executadas na mesma sessão do
+  Terminal.
 - `connection refused`: o gateway não está escutando nesse host/porta; peça
   para o usuário iniciar o gateway pela aplicação ou pelo launcher.
 - Se `ollama run` funcionar em `11434` mas não em `11435`, o primeiro teste é

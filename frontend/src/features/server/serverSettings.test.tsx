@@ -60,7 +60,10 @@ test("shows global settings before model selection and exposes restart-pending s
 
 test("restart action reports model profile reapplication", async () => {
   const restart = vi.fn().mockResolvedValue({ success: true, detail: "ok", reapplied_models: ["gemma4:26b-mlx"] });
-  render(<ServerSettingsPage load={() => Promise.resolve({ ...state, pending_restart: true })} update={vi.fn()} restart={restart} reset={() => Promise.resolve(state)} restartApplication={vi.fn()} />);
+  const load = vi.fn()
+    .mockResolvedValueOnce({ ...state, pending_restart: true })
+    .mockResolvedValueOnce({ ...state, pending_restart: false });
+  render(<ServerSettingsPage load={load} update={vi.fn()} restart={restart} reset={() => Promise.resolve(state)} restartApplication={vi.fn()} />);
 
   await screen.findByRole("heading", { name: "Configurações globais do Ollama" });
   fireEvent.click(screen.getByRole("button", { name: "Aplicar alterações no Ollama" }));
@@ -68,6 +71,7 @@ test("restart action reports model profile reapplication", async () => {
 
   await waitFor(() => expect(restart).toHaveBeenCalledTimes(1));
   expect(await screen.findByText(/perfis reaplicados/i)).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Aplicar alterações no Ollama" })).toBeDisabled();
 });
 
 test("offers context window presets for the global context", async () => {

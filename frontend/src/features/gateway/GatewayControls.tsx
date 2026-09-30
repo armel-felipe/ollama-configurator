@@ -6,6 +6,7 @@ type Props = {
   start: () => Promise<GatewayStatus>;
   stop: () => Promise<GatewayStatus>;
   restart: () => Promise<GatewayStatus>;
+  releaseExternal: () => Promise<GatewayStatus>;
   onStateChange?: (status: GatewayStatus, error: string | null) => void;
 };
 
@@ -19,10 +20,11 @@ function statusLabel(state: GatewayStatus["state"]): string {
   }[state];
 }
 
-export function GatewayControls({ getStatus, start, stop, restart, onStateChange }: Props) {
+export function GatewayControls({ getStatus, start, stop, restart, releaseExternal, onStateChange }: Props) {
   const [status, setStatus] = useState<GatewayStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [confirmRelease, setConfirmRelease] = useState(false);
 
   const load = useCallback(() => {
     void getStatus().then((next) => {
@@ -68,7 +70,7 @@ export function GatewayControls({ getStatus, start, stop, restart, onStateChange
       <p>Porta: {status.port}</p>
       <p>Local: http://{status.host}:{status.port}</p>
       {status.pid ? <p>PID: {status.pid}</p> : null}
-      {unmanaged ? <p>Outro processo está usando a porta; ele não será encerrado pela aplicação.</p> : null}
+      {unmanaged ? <><p>O processo externo {status.process ? <strong>{status.process}</strong> : "identificado"} está usando a porta.</p><p>Libere a porta para iniciar o gateway gerenciado.</p>{confirmRelease ? <div role="alert"><p>Encerrar o processo externo pode interromper outro serviço. Confirme para continuar.</p><button type="button" onClick={() => setConfirmRelease(false)}>Cancelar</button><button type="button" onClick={() => void action(releaseExternal)}>Confirmar encerramento</button></div> : <button type="button" onClick={() => setConfirmRelease(true)} disabled={busy}>Liberar porta</button>}</> : null}
       {status.detail && !unmanaged ? <p>{status.detail}</p> : null}
       {error ? <p role="alert">{error}</p> : null}
       {!unmanaged && status.state !== "running" ? (

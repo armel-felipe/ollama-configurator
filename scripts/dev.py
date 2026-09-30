@@ -11,16 +11,55 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def _spawn_child(
+    command: list[str],
+    cwd: Path,
+    environment: dict[str, str],
+) -> subprocess.Popen[bytes]:
+    if os.name == "nt":
+        return subprocess.Popen(
+            command,
+            cwd=cwd,
+            env=environment,
+            creationflags=getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0),
+        )
+    return subprocess.Popen(command, cwd=cwd, env=environment, start_new_session=True)
+
+
+def _terminate_child(process: subprocess.Popen[bytes]) -> None:
+    if process.poll() is not None:
+        return
+    try:
+        if os.name == "nt":
+            process.send_signal(getattr(signal, "CTRL_BREAK_EVENT", signal.SIGTERM))
+        else:
+            os.killpg(process.pid, signal.SIGTERM)
+    except ProcessLookupError:
+        return
+    try:
+        process.wait(timeout=3.0)
+    except subprocess.TimeoutExpired:
+        try:
+            if os.name == "nt":
+                process.kill()
+            else:
+                os.killpg(process.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            return
+        process.wait(timeout=3.0)
+
+
 def main() -> int:
     npm = "npm.cmd" if sys.platform == "win32" else "npm"
     marker = Path(tempfile.gettempdir()) / f"ollama-configurator-{os.getpid()}.restart"
     marker.unlink(missing_ok=True)
     environment = os.environ.copy()
     environment["OLLAMA_CONFIGURATOR_RESTART_FILE"] = str(marker)
+    shutdown_requested = False
 
     def start_children() -> list[subprocess.Popen[bytes]]:
         return [
-            subprocess.Popen(
+            _spawn_child(
                 [
                     "uv",
                     "run",
@@ -31,32 +70,38 @@ def main() -> int:
                     "--port",
                     "8787",
                 ],
-                cwd=ROOT,
-                env=environment,
+                ROOT,
+                environment,
             ),
-            subprocess.Popen(
+            _spawn_child(
                 [npm, "run", "dev", "--", "--host", "127.0.0.1"],
-                cwd=ROOT / "frontend",
-                env=environment,
+                ROOT / "frontend",
+                environment,
             ),
         ]
 
+    def stop_children(process_list: list[subprocess.Popen[bytes]]) -> None:
+        for process in process_list:
+            _terminate_child(process)
+
+    def handle_signal(_signum: int, _frame: object) -> None:
+        nonlocal shutdown_requested
+        shutdown_requested = True
+        stop_children(processes)
+
     processes = start_children()
 
-    def stop_children(_signum: int, _frame: object) -> None:
-        for process in processes:
-            if process.poll() is None:
-                process.terminate()
-
-    signal.signal(signal.SIGINT, stop_children)
-    signal.signal(signal.SIGTERM, stop_children)
+    signal.signal(signal.SIGINT, handle_signal)
+    signal.signal(signal.SIGTERM, handle_signal)
     print("Backend: http://127.0.0.1:8787")
     print("Frontend: http://127.0.0.1:5173")
     try:
         while True:
+            if shutdown_requested:
+                return 0
             if marker.exists():
                 marker.unlink(missing_ok=True)
-                stop_children(0, None)
+                stop_children(processes)
                 for process in processes:
                     process.wait()
                 processes = start_children()
@@ -66,7 +111,7 @@ def main() -> int:
                 )
             time.sleep(0.25)
     finally:
-        stop_children(0, None)
+        stop_children(processes)
         for process in processes:
             process.wait()
         marker.unlink(missing_ok=True)

@@ -12,4 +12,7 @@ frontend/dist/
 *.tsbuildinfo
 .env
 .DS_Store
+._*
+.superpowers/
 .superpowers/sdd/
+start-local.command

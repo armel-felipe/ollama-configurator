@@ -204,4 +204,22 @@ describe("ModelSettingsPage", () => {
     expect(apply).not.toHaveBeenCalled();
     expect(screen.getByRole("status")).toHaveTextContent("Salve as alterações antes de aplicar");
   });
+
+  it("does not reload the profile when the parent recreates callback props", async () => {
+    const loadSettings = vi.fn().mockResolvedValue({ options: { num_ctx: 32768 } });
+    const props = {
+      modelId: "qwen:latest",
+      saveSettings: vi.fn().mockResolvedValue({ options: {} }),
+      applySettings: vi.fn().mockResolvedValue({ applied: true }),
+    };
+    const { rerender } = render(
+      <ModelSettingsPage {...props} loadSettings={() => loadSettings()} />,
+    );
+
+    await waitFor(() => expect(screen.getByLabelText("Context Window", { exact: true })).toHaveValue(32768));
+    rerender(<ModelSettingsPage {...props} loadSettings={() => loadSettings()} />);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    expect(loadSettings).toHaveBeenCalledTimes(1);
+  });
 });

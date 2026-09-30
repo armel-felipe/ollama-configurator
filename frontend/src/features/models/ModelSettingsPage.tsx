@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ErrorState, LoadingState } from "../shared/StatusState";
 import { ParameterControl } from "./ParameterControl";
 import { RuntimeStatus } from "./RuntimeStatus";
@@ -24,6 +24,8 @@ type Props = {
 };
 
 export function ModelSettingsPage({ modelId, loadSettings, saveSettings, applySettings, loadRuntime, onStateChange }: Props) {
+  const loadSettingsRef = useRef(loadSettings);
+  loadSettingsRef.current = loadSettings;
   const [options, setOptions] = useState<Options>({});
   const [defaults, setDefaults] = useState<Record<string, boolean>>({
     num_ctx: true,
@@ -48,7 +50,7 @@ export function ModelSettingsPage({ modelId, loadSettings, saveSettings, applySe
   const load = useCallback(() => {
     setLoading(true);
     setError(null);
-    void loadSettings()
+    void loadSettingsRef.current()
       .then(({ options: loaded, thinking: loadedThinking, defaults: loadedDefaults }) => {
         setOptions(loaded);
         setThinking(loadedThinking ?? null);
@@ -64,7 +66,7 @@ export function ModelSettingsPage({ modelId, loadSettings, saveSettings, applySe
       })
       .catch((reason: unknown) => setError(reason instanceof Error ? reason.message : "Falha ao carregar configurações"))
       .finally(() => setLoading(false));
-  }, [loadSettings]);
+  }, [modelId]);
 
   useEffect(() => { load(); }, [load, modelId]);
 

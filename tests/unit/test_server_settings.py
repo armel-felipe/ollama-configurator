@@ -78,3 +78,31 @@ def test_coordinator_restarts_server_before_reapplying_model_profiles(tmp_path: 
 
     assert result.success is True
     assert adapter.events[-2:] == ["restart", "model:gemma4:26b-mlx"]
+
+
+def test_coordinator_retries_profiles_until_ollama_is_ready(tmp_path: Path) -> None:
+    from backend.ollama.client import OllamaConnectionError
+    from backend.os_adapters.base import RestartResult
+    from backend.server_settings.restart_coordinator import RestartCoordinator
+
+    class FakeModelService:
+        attempts = 0
+
+        def apply(self, model_id: str) -> None:
+            self.attempts += 1
+            if self.attempts < 3:
+                raise OllamaConnectionError("starting")
+
+    config_path = tmp_path / "config.json"
+    config_path.write_text('{"models":{"gemma4:26b-mlx":{"num_ctx":16384}},"server":{}}')
+    coordinator = RestartCoordinator(
+        config_path,
+        FakeAdapter(),
+        FakeModelService(),
+        sleep=lambda _: None,
+    )
+    coordinator.adapter.restart_ollama = lambda: RestartResult(True, "ok")  # type: ignore[attr-defined]
+
+    result = coordinator.restart_and_reapply_profiles()
+
+    assert result.success is True

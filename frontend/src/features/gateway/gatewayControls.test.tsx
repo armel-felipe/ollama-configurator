@@ -16,6 +16,7 @@ describe("GatewayControls", () => {
         start={start}
         stop={vi.fn()}
         restart={vi.fn()}
+        releaseExternal={vi.fn()}
       />,
     );
 
@@ -27,21 +28,26 @@ describe("GatewayControls", () => {
     expect(screen.getByRole("button", { name: "Parar servidor" })).toBeInTheDocument();
   });
 
-  it("reports an unmanaged listener instead of offering to kill it", async () => {
+  it("reports an unmanaged listener and offers a confirmed release", async () => {
     const published: string[] = [];
+    const releaseExternal = vi.fn().mockResolvedValue({ state: "stopped", host: "127.0.0.1", port: 11435 });
     render(
       <GatewayControls
         getStatus={async () => ({ state: "external", host: "127.0.0.1", port: 11435, detail: "processo externo" })}
         start={vi.fn()}
         stop={vi.fn()}
         restart={vi.fn()}
+        releaseExternal={releaseExternal}
         onStateChange={(status) => published.push(status.state)}
       />,
     );
 
-    expect(await screen.findByText(/Outro processo está usando a porta/)).toBeInTheDocument();
+    expect(await screen.findByText(/processo externo.*está usando a porta/)).toBeInTheDocument();
     expect(published).toContain("external");
     expect(screen.queryByRole("button", { name: "Parar servidor" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Liberar porta" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar encerramento" }));
+    await waitFor(() => expect(releaseExternal).toHaveBeenCalledTimes(1));
   });
 
   it("keeps checking a running gateway and labels it as responding", async () => {
@@ -59,6 +65,7 @@ describe("GatewayControls", () => {
         start={vi.fn()}
         stop={vi.fn()}
         restart={vi.fn()}
+        releaseExternal={vi.fn()}
       />,
     );
 

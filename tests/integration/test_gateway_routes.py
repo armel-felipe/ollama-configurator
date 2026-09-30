@@ -54,6 +54,28 @@ async def test_gateway_supports_ollama_generate_and_requires_key(tmp_path: Path)
 
 
 @pytest.mark.asyncio
+async def test_gateway_show_accepts_name_used_by_ollama_run(tmp_path: Path) -> None:
+    store = ConfigStore(tmp_path / "config.json")
+    captured: dict[str, str] = {}
+
+    class FakeClient:
+        def show_model(self, model: str) -> dict[str, object]:
+            captured["model"] = model
+            return {"model": model}
+
+    app = create_gateway_app(store=store, client=FakeClient())
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as http_client:
+        response = await http_client.post(
+            "/api/show", json={"name": "gemma4:26b-mlx"}
+        )
+
+    assert response.status_code == 200
+    assert response.json() == {"model": "gemma4:26b-mlx"}
+    assert captured["model"] == "gemma4:26b-mlx"
+
+
+@pytest.mark.asyncio
 async def test_gateway_openai_route_returns_sse_stream(tmp_path: Path) -> None:
     store = ConfigStore(tmp_path / "config.json")
     store.save({"models": {}, "server": {}})

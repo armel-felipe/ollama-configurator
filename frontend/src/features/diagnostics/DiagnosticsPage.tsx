@@ -6,6 +6,7 @@ import {
   getModelRuntime,
   getGatewayStatus,
   restartGateway,
+  releaseExternalGateway,
   resetAllModels,
   resetModel,
   saveModelSettings,
@@ -24,6 +25,8 @@ import { ResetControls } from "../settings/ResetControls";
 import { GatewayControls } from "../gateway/GatewayControls";
 import { ServerSettingsPage } from "../server/ServerSettingsPage";
 import { OperationalStatusSummary } from "../status/OperationalStatusSummary";
+import { LiveLogsPanel } from "../logs/LiveLogsPanel";
+import { ConnectionsPage } from "../connections/ConnectionsPage";
 import { deriveOperationalStatus, type OperationalAction } from "../status/operationalStatus";
 
 type Props = { loadDiagnostics: () => Promise<DiagnosticsSnapshot> };
@@ -84,12 +87,14 @@ export function DiagnosticsPage({ loadDiagnostics }: Props) {
         <div className="ollama-status"><span className="status-dot" aria-hidden="true" /> Ollama {data.ollama.available ? data.ollama.version : "indisponível"}</div>
       </div>
       <OperationalStatusSummary status={operationalStatus} />
+      <LiveLogsPanel />
       <ServerSettingsPage load={getServerSettings} update={saveServerSettings} restart={restartServer} reset={resetServerSettings} restartApplication={restartApplication} onStateChange={setServerView} />
       <GatewayControls
         getStatus={getGatewayStatus}
         start={startGateway}
         stop={stopGateway}
         restart={restartGateway}
+        releaseExternal={releaseExternalGateway}
         onStateChange={handleGatewayState}
       />
       <ModelWorkspace models={data.models} selectedModel={selectedModel} onSelect={setSelectedModel}>
@@ -104,6 +109,12 @@ export function DiagnosticsPage({ loadDiagnostics }: Props) {
           />
         ) : null}
       </ModelWorkspace>
+      <ConnectionsPage
+        models={data.models}
+        selectedModel={selectedModel}
+        gateway={gatewayView.status}
+        onSelectModel={setSelectedModel}
+      />
       <section className="system-summary" id="diagnostics-section" aria-labelledby="system-heading">
         <div>
           <div className="section-kicker">Sistema</div>

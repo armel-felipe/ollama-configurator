@@ -114,6 +114,7 @@ export type GatewayStatus = {
   host: string;
   port: number;
   pid?: number | null;
+  process?: string | null;
   detail?: string | null;
 };
 
@@ -140,6 +141,10 @@ export function stopGateway(): Promise<GatewayStatus> {
 
 export function restartGateway(): Promise<GatewayStatus> {
   return gatewayAction("restart");
+}
+
+export function releaseExternalGateway(): Promise<GatewayStatus> {
+  return gatewayAction("release-external");
 }
 
 export type ServerSettingCapability = {

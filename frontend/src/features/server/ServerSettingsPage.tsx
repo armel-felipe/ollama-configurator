@@ -25,17 +25,20 @@ export function ServerSettingsPage({ load, update, restart, reset, restartApplic
     onStateChange?.({ loaded: Boolean(state), available: state?.available ?? false, pendingRestart: state?.pending_restart ?? false, dirty, error });
   }, [dirty, error, onStateChange, state]);
 
-  const refresh = useCallback(() => {
+  const refresh = useCallback(async () => {
     setError(null);
-    void load().then((next) => {
+    try {
+      const next = await load();
       setState(next);
       setValues({ ...next.effective, ...next.settings });
       setDefaults(new Set());
       setDirty(false);
-    }).catch((reason: unknown) => setError(reason instanceof Error ? reason.message : "Falha ao carregar configurações globais"));
+    } catch (reason: unknown) {
+      setError(reason instanceof Error ? reason.message : "Falha ao carregar configurações globais");
+    }
   }, [load]);
 
-  useEffect(() => { refresh(); }, [refresh]);
+  useEffect(() => { void refresh(); }, [refresh]);
 
   const entries = useMemo(() => Object.entries(state?.capabilities ?? {}), [state]);
   const restartApp = async () => {
@@ -75,7 +78,7 @@ export function ServerSettingsPage({ load, update, restart, reset, restartApplic
   };
   const runRestart = async () => {
     setBusy(true); setError(null); setConfirmRestart(false);
-    try { const result = await restart(); setMessage(result.success ? `${result.detail}. Perfis reaplicados: ${result.reapplied_models.length ? result.reapplied_models.join(", ") : "nenhum modelo carregado"}` : result.detail); refresh(); }
+    try { const result = await restart(); await refresh(); setMessage(result.success ? `${result.detail}. Perfis reaplicados: ${result.reapplied_models.length ? result.reapplied_models.join(", ") : "nenhum modelo carregado"}` : result.detail); }
     catch (reason: unknown) { setError(reason instanceof Error ? reason.message : "Falha ao reiniciar o Ollama"); }
     finally { setBusy(false); }
   };

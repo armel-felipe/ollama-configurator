@@ -41,3 +41,11 @@ def gateway_restart() -> dict[str, object]:
         return _result(get_gateway_manager().restart())
     except GatewayManagerError as error:
         raise HTTPException(status_code=409, detail=str(error)) from error
+
+
+@router.post("/release-external")
+def gateway_release_external() -> dict[str, object]:
+    try:
+        return _result(get_gateway_manager().release_external())
+    except GatewayManagerError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
