@@ -1,5 +1,6 @@
 param(
-  [string]$Output = "dist/windows"
+  [string]$Output = "dist/windows",
+  [switch]$SkipFrontendInstall
 )
 
 $ErrorActionPreference = "Stop"
@@ -11,7 +12,9 @@ if (Test-Path $Payload) { Remove-Item $Payload -Recurse -Force }
 
 & uv run python (Join-Path $Root "scripts/build_backend.py") --output (Join-Path $OutputPath "backend")
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-& node (Join-Path $Root "scripts/build_frontend.mjs") --output (Join-Path $OutputPath "frontend")
+$FrontendArgs = @("--output", (Join-Path $OutputPath "frontend"))
+if ($SkipFrontendInstall) { $FrontendArgs += "--skip-install" }
+& node (Join-Path $Root "scripts/build_frontend.mjs") @FrontendArgs
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 New-Item -ItemType Directory -Force -Path $Payload | Out-Null

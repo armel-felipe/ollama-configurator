@@ -7,6 +7,7 @@ const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const frontend = resolve(root, "frontend");
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
+const skipInstall = args.includes("--skip-install");
 const outputIndex = args.indexOf("--output");
 const output = resolve(root, outputIndex >= 0 ? args[outputIndex + 1] : "dist/frontend");
 const packageJson = JSON.parse(await readFile(resolve(frontend, "package.json"), "utf8"));
@@ -33,8 +34,10 @@ async function copyClean(source, destination) {
 
 if (!dryRun) {
   const npm = process.platform === "win32" ? "npm.cmd" : "npm";
-  const install = spawnSync(npm, ["ci"], { cwd: frontend, stdio: "inherit" });
-  if (install.status !== 0) process.exit(install.status ?? 1);
+  if (!skipInstall) {
+    const install = spawnSync(npm, ["ci"], { cwd: frontend, stdio: "inherit" });
+    if (install.status !== 0) process.exit(install.status ?? 1);
+  }
   const build = spawnSync(npm, ["run", "build"], { cwd: frontend, stdio: "inherit" });
   if (build.status !== 0) process.exit(build.status ?? 1);
   await rm(output, { recursive: true, force: true });
