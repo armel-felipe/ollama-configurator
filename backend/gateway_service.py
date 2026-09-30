@@ -194,7 +194,12 @@ class GatewayService:
             raise ValueError("model must be a non-empty string")
         saved = dict(self.store.load().get("models", {}).get(model, {}))
         incoming_options = payload.get("options", {})
-        if not isinstance(incoming_options, dict):
+        # The interactive Ollama CLI sends `options: null` while it performs
+        # its model-preload request before opening the prompt. Treat null as
+        # the protocol's empty options object instead of returning HTTP 400.
+        if incoming_options is None:
+            incoming_options = {}
+        elif not isinstance(incoming_options, dict):
             raise ValueError("options must be an object")
         options = dict(incoming_options)
         options.update(

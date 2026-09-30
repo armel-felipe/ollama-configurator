@@ -63,6 +63,33 @@ def test_gateway_keeps_client_values_when_profile_is_default() -> None:
     assert result["think"] is None
 
 
+def test_gateway_accepts_null_options_from_interactive_ollama_run() -> None:
+    class FakeClient:
+        def generate(self, _model: str, **kwargs: object) -> dict[str, object]:
+            return kwargs
+
+        def chat(
+            self, _model: str, _messages: list[dict[str, object]], **kwargs: object
+        ) -> dict[str, object]:
+            return kwargs
+
+    store = ConfigStore(Path("/tmp/gateway-interactive-load-config.json"))
+    store.save({"models": {"gemma4:26b-mlx": {}}, "server": {}})
+    service = GatewayService(store, FakeClient())
+
+    result = service.generate(
+        {
+            "model": "gemma4:26b-mlx",
+            "prompt": "",
+            "options": None,
+            "think": True,
+        }
+    )
+
+    assert result["options"] == {}
+    assert result["think"] is True
+
+
 def test_gateway_converts_openai_chat_to_ollama_response() -> None:
     class FakeClient:
         def generate(self, _model: str, **_: object) -> dict[str, object]:
