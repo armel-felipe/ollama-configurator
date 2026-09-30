@@ -19,7 +19,9 @@ class FakeManager:
 
 
 @pytest.mark.asyncio
-async def test_application_lifecycle_starts_and_stops_gateway(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_application_lifecycle_starts_and_stops_gateway(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     manager = FakeManager()
     monkeypatch.setattr("backend.app.get_gateway_manager", lambda: manager)
 

@@ -1,11 +1,12 @@
-from contextlib import asynccontextmanager
 from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from pydantic import BaseModel
 
 from backend.api.application_routes import router as application_router
 from backend.api.diagnostics_routes import router as diagnostics_router
+from backend.api.gateway_routes import get_gateway_manager
 from backend.api.gateway_routes import router as gateway_router
 from backend.api.inference_routes import router as inference_router
 from backend.api.log_routes import router as log_router
@@ -16,7 +17,6 @@ from backend.api.reset_routes import router as reset_router
 from backend.api.server_settings_routes import router as server_settings_router
 from backend.config import settings
 from backend.gateway_manager import GatewayManagerError
-from backend.api.gateway_routes import get_gateway_manager
 from backend.logging_config import configure_logging
 
 configure_logging()

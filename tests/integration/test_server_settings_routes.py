@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import httpx
 import pytest
 
@@ -66,3 +68,18 @@ async def test_server_settings_routes_expose_global_state(monkeypatch: pytest.Mo
     assert update.json()["pending_restart"] is True
     assert restart.json()["success"] is True
     assert restart.json()["reapplied_models"] == ["gemma4:26b-mlx"]
+
+
+def test_server_settings_factory_selects_windows_adapter(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    import backend.api.server_settings_routes as routes
+
+    marker = object()
+    monkeypatch.setattr(routes.platform, "system", lambda: "Windows")
+    monkeypatch.setattr(routes, "WindowsAdapter", lambda: marker)
+    monkeypatch.setattr(routes, "user_data_dir", lambda: tmp_path)
+
+    service = routes.get_server_settings_service()
+
+    assert service.adapter is marker

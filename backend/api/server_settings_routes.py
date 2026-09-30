@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 from backend.ollama.client import get_ollama_client
 from backend.ollama.options import ModelSettingsService
 from backend.os_adapters.macos import MacOSAdapter
+from backend.os_adapters.windows import WindowsAdapter
 from backend.persistence.paths import user_data_dir
 from backend.persistence.store import ConfigStore
 from backend.server_settings.restart_coordinator import RestartCoordinator
@@ -30,11 +31,8 @@ class RestartResponse(BaseModel):
 
 
 def get_server_settings_service() -> ServerSettingsService:
-    # Task 8 is the macOS implementation. The shared service keeps this
-    # factory replaceable when the Windows adapter is added in Task 9.
-    if platform.system() != "Darwin":
-        raise RuntimeError("configurações persistentes ainda não estão disponíveis neste sistema")
-    return ServerSettingsService(user_data_dir() / "config.json", MacOSAdapter())
+    adapter = MacOSAdapter() if platform.system() == "Darwin" else WindowsAdapter()
+    return ServerSettingsService(user_data_dir() / "config.json", adapter)
 
 
 def get_restart_coordinator() -> RestartCoordinator:

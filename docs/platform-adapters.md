@@ -1,5 +1,17 @@
 # Platform adapters
 
+## Windows
+
+O adaptador Windows persiste os overrides do usuário em
+`HKCU\Environment`, atualiza o processo atual e reinicia o aplicativo Ollama
+com `taskkill` seguido de `start Ollama`. O valor persiste para novos logins e
+não exige privilégios administrativos para a chave do usuário. Se o processo
+não estiver rodando, o código 128 do `taskkill` é tratado como uma condição
+normal e o aplicativo é iniciado mesmo assim.
+
+As rotas `/api/server/settings` e `/api/server/restart` permanecem iguais às
+do macOS; apenas a implementação de `SystemAdapter` muda por plataforma.
+
 The server settings service stores only explicit overrides in the application
 configuration file. `Ollama Default` removes the override; it is never
 represented by a guessed value such as `0` or `false`.
