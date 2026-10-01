@@ -131,7 +131,11 @@ export function GatewayControls({ getStatus, start, stop, restart, releaseExtern
       <h2 id="gateway-heading">Runtime Gateway</h2>
       <p>Status: <strong>{statusLabel(status.state)}</strong></p>
       <p>Porta: {status.port}</p>
-      <p>Local: http://{status.host}:{status.port}</p>
+      {status.host === "0.0.0.0" ? (
+        <p>Bind: todas as interfaces · porta {status.port}</p>
+      ) : (
+        <p>Local: http://{status.host}:{status.port}</p>
+      )}
       {status.pid ? <p>PID: {status.pid}</p> : null}
       {unmanaged ? <><p>O processo externo {status.process ? <strong>{status.process}</strong> : "identificado"} está usando a porta.</p><p>Libere a porta para iniciar o gateway gerenciado.</p>{confirmRelease ? <div role="alert"><p>Encerrar o processo externo pode interromper outro serviço. Confirme para continuar.</p><button type="button" onClick={() => setConfirmRelease(false)}>Cancelar</button><button type="button" onClick={() => void action(releaseExternal)}>Confirmar encerramento</button></div> : <button type="button" onClick={() => setConfirmRelease(true)} disabled={busy}>Liberar porta</button>}</> : null}
       {status.detail && !unmanaged ? <p>{status.detail}</p> : null}

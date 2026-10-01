@@ -107,6 +107,30 @@ describe("GatewayControls", () => {
     expect(screen.getByText("Alteração não salva")).toBeInTheDocument();
   });
 
+  it("does not present the wildcard bind as a client URL", async () => {
+    render(
+      <GatewayControls
+        getStatus={async () => ({ state: "running", host: "0.0.0.0", port: 11435, pid: 7 })}
+        start={vi.fn()}
+        stop={vi.fn()}
+        restart={vi.fn()}
+        releaseExternal={vi.fn()}
+        getSettings={async () => ({
+          host: "0.0.0.0",
+          effective_host: "0.0.0.0",
+          port: 11435,
+          pending_restart: false,
+          options: ["127.0.0.1", "0.0.0.0"],
+          warning: "aviso",
+        })}
+      />,
+    );
+
+    await screen.findByLabelText("Endereço de escuta do gateway");
+    expect(screen.getByText("Bind: todas as interfaces · porta 11435")).toBeInTheDocument();
+    expect(screen.queryByText("Local: http://0.0.0.0:11435")).not.toBeInTheDocument();
+  });
+
   it("saves the selected bind and applies it only after explicit gateway restart", async () => {
     const updateSettings = vi.fn().mockResolvedValue({
       host: "0.0.0.0",
