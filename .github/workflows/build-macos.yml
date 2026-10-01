@@ -47,7 +47,7 @@ jobs:
             echo "Expected macOS installer not found: $dmg" >&2
             exit 1
           fi
-          shasum -a 256 "$dmg" > dist/macos/checksums.txt
+          (cd dist/macos && shasum -a 256 OllamaConfigurator-macOS.dmg > checksums.txt)
           gh release upload "$tag" "$dmg" dist/macos/checksums.txt \
             --repo "$repo" \
             --clobber
