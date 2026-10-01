@@ -4,8 +4,8 @@ import httpx
 import pytest
 
 from backend.app import app
-from backend.gateway_settings import DEFAULT_GATEWAY_HOST
 from backend.gateway_manager import GatewayStatus
+from backend.gateway_settings import DEFAULT_GATEWAY_HOST
 from backend.persistence.store import ConfigStore
 
 
