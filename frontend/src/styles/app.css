@@ -244,6 +244,20 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .connection-empty { padding: 22px; border: 1px dashed var(--border-strong); border-radius: var(--radius-md); color: var(--text-muted); font-size: 12px; }
 .connection-warning { display: flex; align-items: center; gap: 8px; margin: 0; padding: 11px 13px; border: 1px solid color-mix(in srgb, var(--warning) 42%, var(--border)); border-radius: var(--radius-sm); background: color-mix(in srgb, var(--warning-soft, #fff4d9) 75%, var(--surface-raised)); color: var(--warning); font-size: 12px; }
 .connection-warning .status-dot { flex: 0 0 auto; background: var(--warning); }
+.gateway-access-panel { display: grid; gap: 12px; margin: 18px 0; padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-subtle); }
+.gateway-access-panel h3 { margin: 0 0 4px; font-size: 14px; }
+.gateway-access-panel p { margin: 0; color: var(--text-muted); font-size: 11px; line-height: 1.5; }
+.gateway-bind-select { display: grid; gap: 7px; max-width: 520px; }
+.gateway-bind-select span { color: var(--text); font-size: 11px; font-weight: 750; }
+.gateway-bind-select select { min-height: 38px; padding: 0 10px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface-raised); color: var(--text); }
+.gateway-network-warning { padding: 11px 13px; border: 1px solid color-mix(in srgb, var(--warning) 42%, var(--border)); border-radius: var(--radius-sm); background: color-mix(in srgb, var(--warning-soft, #fff4d9) 75%, var(--surface-raised)); color: var(--warning) !important; }
+.gateway-effective-state strong { color: var(--text); font-weight: 750; }
+.gateway-settings-message { color: var(--accent) !important; font-weight: 700; }
+.gateway-settings-error { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 13px; border: 1px solid color-mix(in srgb, var(--danger) 42%, var(--border)); border-radius: var(--radius-sm); background: color-mix(in srgb, var(--danger) 8%, var(--surface-raised)); }
+.gateway-settings-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.gateway-settings-actions button, .gateway-settings-error button { min-height: 36px; padding: 0 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-raised); color: var(--text-muted); cursor: pointer; font-size: 11px; font-weight: 700; }
+.gateway-settings-actions button:hover, .gateway-settings-error button:hover { border-color: var(--border-strong); background: var(--surface); color: var(--text); }
+.gateway-remote-hint { color: var(--text-soft); font-size: 10px; line-height: 1.45; }
 
 @media (max-width: 760px) {
   .app-shell { height: auto; min-height: 100vh; overflow: visible; }
@@ -281,6 +295,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .connection-guidance { align-items: flex-start; }
   .connection-guidance .connection-warning { margin: 8px 0 0; }
   .connection-grid { grid-template-columns: 1fr; }
+  .gateway-settings-error { align-items: flex-start; flex-direction: column; }
 }
 
 @media (min-width: 761px) and (max-width: 1180px) {

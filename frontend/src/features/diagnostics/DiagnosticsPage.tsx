@@ -5,6 +5,7 @@ import {
   getModelSettings,
   getModelRuntime,
   getGatewayStatus,
+  getGatewaySettings,
   restartGateway,
   releaseExternalGateway,
   resetAllModels,
@@ -12,6 +13,8 @@ import {
   saveModelSettings,
   startGateway,
   stopGateway,
+  saveGatewaySettings,
+  applyGatewaySettings,
   getServerSettings,
   resetServerSettings,
   restartServer,
@@ -36,9 +39,9 @@ export function DiagnosticsPage({ loadDiagnostics }: Props) {
   const [selectedModel, setSelectedModel] = useState<string | undefined>();
   const [error, setError] = useState<string | null>(null);
   const [serverView, setServerView] = useState<{ loaded: boolean; available: boolean; pendingRestart: boolean; dirty: boolean; error: string | null }>({ loaded: false, available: false, pendingRestart: false, dirty: false, error: null });
-  const [gatewayView, setGatewayView] = useState<{ status: Awaited<ReturnType<typeof getGatewayStatus>> | null; error: string | null }>({ status: null, error: null });
+  const [gatewayView, setGatewayView] = useState<{ status: Awaited<ReturnType<typeof getGatewayStatus>> | null; error: string | null; pending: boolean }>({ status: null, error: null, pending: false });
   const [modelView, setModelView] = useState<{ selected: boolean; dirty: boolean; runtime: Awaited<ReturnType<typeof getModelRuntime>> | null; error: string | null }>({ selected: false, dirty: false, runtime: null, error: null });
-  const handleGatewayState = useCallback((status: Awaited<ReturnType<typeof getGatewayStatus>>, gatewayError: string | null) => setGatewayView({ status, error: gatewayError }), []);
+  const handleGatewayState = useCallback((status: Awaited<ReturnType<typeof getGatewayStatus>>, gatewayError: string | null, pending = false) => setGatewayView({ status, error: gatewayError, pending }), []);
   const handleModelState = useCallback((next: { selected: boolean; dirty: boolean; runtime: Awaited<ReturnType<typeof getModelRuntime>> | null; error: string | null }) => setModelView(next), []);
   const load = useCallback(() => {
     setError(null);
@@ -61,6 +64,7 @@ export function DiagnosticsPage({ loadDiagnostics }: Props) {
   const operationalStatus = deriveOperationalStatus({
     ollamaAvailable: data.ollama.available,
     gateway: gatewayView.status,
+    gatewayPending: gatewayView.pending,
     gatewayError: gatewayView.error,
     server: serverView.loaded ? { available: serverView.available, pending_restart: serverView.pendingRestart } : null,
     serverDirty: serverView.dirty,
@@ -95,6 +99,9 @@ export function DiagnosticsPage({ loadDiagnostics }: Props) {
         stop={stopGateway}
         restart={restartGateway}
         releaseExternal={releaseExternalGateway}
+        getSettings={getGatewaySettings}
+        updateSettings={saveGatewaySettings}
+        applySettings={applyGatewaySettings}
         onStateChange={handleGatewayState}
       />
       <ModelWorkspace models={data.models} selectedModel={selectedModel} onSelect={setSelectedModel}>

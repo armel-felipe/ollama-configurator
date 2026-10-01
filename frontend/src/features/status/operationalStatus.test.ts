@@ -47,6 +47,17 @@ describe("deriveOperationalStatus", () => {
     expect(status.primaryAction).toBeNull();
   });
 
+  it("reports a pending gateway bind separately from an active process", () => {
+    const status = deriveOperationalStatus({
+      ...healthy,
+      gatewayPending: true,
+    });
+
+    expect(status.gateway.state).toBe("pending");
+    expect(status.gateway.label).toMatch(/bind pendente/i);
+    expect(status.gateway.detail).toMatch(/endereço/i);
+  });
+
   it("prioritizes a divergent runtime after configuration is applied", () => {
     const status = deriveOperationalStatus({
       ...healthy,

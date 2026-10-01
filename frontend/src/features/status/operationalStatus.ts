@@ -31,6 +31,7 @@ export type OperationalStatus = {
 export type OperationalInputs = {
   ollamaAvailable: boolean;
   gateway: GatewayStatus | null;
+  gatewayPending?: boolean;
   gatewayError?: string | null;
   server: Pick<ServerSettingsState, "available" | "pending_restart"> | null;
   serverDirty: boolean;
@@ -51,6 +52,7 @@ export type OperationalInputs = {
 function gatewayStatus(input: OperationalInputs): OperationalStatus["gateway"] {
   if (input.gatewayError) return { state: "error", label: "Gateway com erro", detail: input.gatewayError };
   if (!input.gateway) return { state: "starting", label: "Gateway consultando", detail: "Consultando a porta 11435." };
+  if (input.gateway.state === "running" && input.gatewayPending) return { state: "pending", label: "Bind pendente", detail: "O gateway está ativo, mas ainda usa o endereço anterior." };
   if (input.gateway.state === "running") return { state: "active", label: "Gateway ativo", detail: `Respondendo em ${input.gateway.host}:${input.gateway.port}.` };
   if (input.gateway.state === "external") return { state: "external", label: "Gateway externo", detail: "Outro processo está usando a porta; a aplicação não o controla." };
   if (input.gateway.state === "starting") return { state: "starting", label: "Gateway iniciando", detail: "Aguardando o gateway responder." };

@@ -118,6 +118,20 @@ export type GatewayStatus = {
   detail?: string | null;
 };
 
+export type GatewaySettings = {
+  host: string;
+  effective_host: string;
+  port: number;
+  pending_restart: boolean;
+  options: string[];
+  warning?: string | null;
+};
+
+export type GatewayApplyResult = {
+  status: GatewayStatus;
+  settings: GatewaySettings;
+};
+
 async function gatewayAction(path: string): Promise<GatewayStatus> {
   const response = await fetch(`/api/gateway/${path}`, { method: path === "status" ? "GET" : "POST" });
   if (!response.ok) {
@@ -145,6 +159,34 @@ export function restartGateway(): Promise<GatewayStatus> {
 
 export function releaseExternalGateway(): Promise<GatewayStatus> {
   return gatewayAction("release-external");
+}
+
+export async function getGatewaySettings(): Promise<GatewaySettings> {
+  const response = await fetch("/api/gateway/settings");
+  if (!response.ok) throw new Error("Não foi possível carregar o acesso do gateway");
+  return response.json() as Promise<GatewaySettings>;
+}
+
+export async function saveGatewaySettings(host: string): Promise<GatewaySettings> {
+  const response = await fetch("/api/gateway/settings", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ host }),
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => null) as { detail?: string } | null;
+    throw new Error(body?.detail ?? "Não foi possível salvar o acesso do gateway");
+  }
+  return response.json() as Promise<GatewaySettings>;
+}
+
+export async function applyGatewaySettings(): Promise<GatewayApplyResult> {
+  const response = await fetch("/api/gateway/apply", { method: "POST" });
+  if (!response.ok) {
+    const body = await response.json().catch(() => null) as { detail?: string } | null;
+    throw new Error(body?.detail ?? "Não foi possível aplicar o acesso do gateway");
+  }
+  return response.json() as Promise<GatewayApplyResult>;
 }
 
 export type ServerSettingCapability = {
