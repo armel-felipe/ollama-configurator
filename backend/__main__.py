@@ -12,6 +12,7 @@ from urllib.request import urlopen
 import uvicorn
 
 from backend.config import settings
+from backend.startup import StartupError, acquire_listener, show_startup_error
 
 
 def _parse_gateway_args() -> argparse.Namespace:
@@ -34,30 +35,42 @@ def _open_browser_when_ready(
     while time.monotonic() < deadline:
         try:
             with urlopen(health_url, timeout=0.5) as response:
-                if 200 <= response.status < 500:
-                    webbrowser.open(app_url)
-                    return
+                if response.status == 200:
+                    with urlopen(app_url, timeout=0.5) as page:
+                        if page.status == 200 and page.headers.get_content_type() == "text/html":
+                            webbrowser.open(app_url)
+                            return
         except (OSError, URLError):
             pass
         time.sleep(poll_interval_seconds)
 
 
+def _run_application() -> None:
+    config = uvicorn.Config("backend.app:app", host=settings.host, port=settings.port)
+    # Claim the port before probing readiness or starting the gateway lifespan.
+    # Otherwise an older instance can satisfy the probe and open a broken UI.
+    listener = acquire_listener(settings.host, settings.port)
+    try:
+        if os.environ.get("OLLAMA_CONFIGURATOR_OPEN_BROWSER") == "1":
+            app_url = f"http://{settings.host}:{settings.port}/"
+            threading.Thread(
+                target=_open_browser_when_ready,
+                args=(app_url,),
+                kwargs={"health_url": f"{app_url}api/health"},
+                daemon=True,
+            ).start()
+        uvicorn.Server(config).run(sockets=[listener])
+    finally:
+        listener.close()
+
+
 if __name__ == "__main__":
     runtime_args = _parse_gateway_args()
     if runtime_args.gateway:
-        uvicorn.run(
-            "backend.gateway:app",
-            host=runtime_args.host,
-            port=runtime_args.port,
-        )
-        raise SystemExit(0)
-    if os.environ.get("OLLAMA_CONFIGURATOR_OPEN_BROWSER") == "1":
-        app_url = f"http://{settings.host}:{settings.port}/"
-        health_url = f"http://{settings.host}:{settings.port}/api/health"
-        threading.Thread(
-            target=_open_browser_when_ready,
-            args=(app_url,),
-            kwargs={"health_url": health_url},
-            daemon=True,
-        ).start()
-    uvicorn.run("backend.app:app", host=settings.host, port=settings.port)
+        uvicorn.run("backend.gateway:app", host=runtime_args.host, port=runtime_args.port)
+    else:
+        try:
+            _run_application()
+        except StartupError as error:
+            show_startup_error(error)
+            raise SystemExit(1) from error
