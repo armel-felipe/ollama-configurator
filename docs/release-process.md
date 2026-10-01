@@ -17,6 +17,8 @@
 7. Publicar no GitHub Releases somente depois desses checks e anexar os
    artefatos e `checksums.txt`.
 
-O pipeline atual cria bundles reproduzíveis e faz upload dos artefatos. As
+O pipeline atual cria bundles reproduzíveis, faz upload dos artefatos, gera
+checksums e publica o `.dmg` macOS e o pacote Windows como assets da GitHub
+Release associada à tag. As
 credenciais de assinatura e a validação em máquinas limpas são deliberadamente
 responsabilidades do ambiente de release, nunca valores gravados no repositório.

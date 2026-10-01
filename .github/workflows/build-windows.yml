@@ -1,5 +1,8 @@
 name: Build Windows
 
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
   push:
@@ -27,3 +30,26 @@ jobs:
         with:
           name: OllamaConfigurator-Windows-x64
           path: dist/windows/
+      - name: Publish release assets
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $repo = "${{ github.repository }}"
+          gh release view $tag --repo $repo *> $null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $tag --repo $repo --title "Ollama Configurator $tag" --generate-notes
+            if ($LASTEXITCODE -ne 0) {
+              gh release view $tag --repo $repo *> $null
+              if ($LASTEXITCODE -ne 0) { throw "Unable to create or locate release $tag" }
+            }
+          }
+          $installer = Join-Path (Resolve-Path "dist/windows") "OllamaConfigurator-Windows-x64.zip"
+          if (-not (Test-Path $installer)) { throw "Expected Windows installer not found: $installer" }
+          $hash = (Get-FileHash $installer -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  OllamaConfigurator-Windows-x64.zip" | Set-Content (Join-Path (Split-Path $installer) "checksums.txt")
+          gh release upload $tag $installer (Join-Path (Split-Path $installer) "checksums.txt") --repo $repo --clobber
+          if ($LASTEXITCODE -ne 0) { throw "Unable to upload Windows release assets" }
+          }
