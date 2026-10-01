@@ -85,14 +85,15 @@ def _resolve_frontend_dir() -> Path | None:
 
 
 frontend_path = _resolve_frontend_dir()
-if frontend_path:
-    assets_path = frontend_path / "assets"
+if frontend_path is not None:
+    bundled_frontend_path = frontend_path
+    assets_path = bundled_frontend_path / "assets"
     if assets_path.is_dir():
         app.mount("/assets", StaticFiles(directory=assets_path), name="assets")
 
     @app.get("/", include_in_schema=False)
     def frontend_index() -> FileResponse:
-        return FileResponse(frontend_path / "index.html")
+        return FileResponse(bundled_frontend_path / "index.html")
 
 
 @app.get("/api/health", response_model=HealthResponse)
