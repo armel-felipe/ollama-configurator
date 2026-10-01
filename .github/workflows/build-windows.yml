@@ -45,10 +45,10 @@ jobs:
               gh release view $tag --repo $repo *> $null
               if ($LASTEXITCODE -ne 0) { throw "Unable to create or locate release $tag" }
             }
+          }
           $installer = Join-Path (Resolve-Path "dist/windows") "OllamaConfigurator-Windows-x64.zip"
           if (-not (Test-Path $installer)) { throw "Expected Windows installer not found: $installer" }
           $hash = (Get-FileHash $installer -Algorithm SHA256).Hash.ToLowerInvariant()
           "$hash  OllamaConfigurator-Windows-x64.zip" | Set-Content (Join-Path (Split-Path $installer) "checksums-Windows.txt")
           gh release upload $tag $installer (Join-Path (Split-Path $installer) "checksums-Windows.txt") --repo $repo --clobber
           if ($LASTEXITCODE -ne 0) { throw "Unable to upload Windows release assets" }
-          }
