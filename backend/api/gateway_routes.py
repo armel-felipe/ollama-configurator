@@ -1,9 +1,23 @@
 from fastapi import APIRouter, HTTPException
 
 from backend.gateway_manager import GatewayManagerError, GatewayProcessManager, GatewayStatus
+from backend.gateway_settings import DEFAULT_GATEWAY_HOST, GatewaySettingsService
+from backend.persistence.paths import user_data_dir
+from backend.persistence.store import ConfigStore
 
 router = APIRouter(prefix="/api/gateway")
-_manager = GatewayProcessManager()
+
+
+def configured_gateway_host() -> str:
+    try:
+        return GatewaySettingsService(
+            ConfigStore(user_data_dir() / "config.json")
+        ).get(effective_host=DEFAULT_GATEWAY_HOST).host
+    except (OSError, ValueError):
+        return DEFAULT_GATEWAY_HOST
+
+
+_manager = GatewayProcessManager(host=configured_gateway_host())
 
 
 def get_gateway_manager() -> GatewayProcessManager:

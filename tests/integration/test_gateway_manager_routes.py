@@ -4,7 +4,9 @@ import httpx
 import pytest
 
 from backend.app import app
+from backend.gateway_settings import DEFAULT_GATEWAY_HOST
 from backend.gateway_manager import GatewayStatus
+from backend.persistence.store import ConfigStore
 
 
 class FakeManager:
@@ -19,6 +21,22 @@ class FakeManager:
 
     def restart(self) -> GatewayStatus:
         return GatewayStatus(state="running", host="127.0.0.1", port=11435, pid=100)
+
+
+def test_gateway_manager_host_is_loaded_from_persisted_configuration(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    ConfigStore(tmp_path / "config.json").save({
+        "models": {},
+        "server": {},
+        "gateway": {"host": "0.0.0.0"},
+    })
+    monkeypatch.setattr("backend.api.gateway_routes.user_data_dir", lambda: tmp_path, raising=False)
+
+    from backend.api.gateway_routes import configured_gateway_host
+
+    assert configured_gateway_host() == "0.0.0.0"
+    assert DEFAULT_GATEWAY_HOST == "127.0.0.1"
 
 
 @pytest.mark.asyncio

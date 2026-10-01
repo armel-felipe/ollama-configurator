@@ -10,6 +10,7 @@ from typing import Protocol
 
 import httpx
 
+from backend.gateway_settings import GATEWAY_PORT, validate_gateway_host
 from backend.logs import LOG_STORE, LogStore
 
 
@@ -59,17 +60,19 @@ def _spawn(command: list[str], cwd: Path) -> GatewayProcess:
 
 
 def _health_check(host: str, port: int) -> bool:
+    probe_host = "127.0.0.1" if host == "0.0.0.0" else host
     try:
-        response = httpx.get(f"http://{host}:{port}/health", timeout=0.3)
+        response = httpx.get(f"http://{probe_host}:{port}/health", timeout=0.3)
         return response.is_success
     except httpx.HTTPError:
         return False
 
 
 def _external_process(host: str, port: int) -> tuple[int, str] | None:
+    listener = f"-iTCP:{port}" if host == "0.0.0.0" else f"-iTCP@{host}:{port}"
     try:
         result = subprocess.run(
-            ["/usr/sbin/lsof", "-nP", f"-iTCP@{host}:{port}", "-sTCP:LISTEN", "-Fpct"],
+            ["/usr/sbin/lsof", "-nP", listener, "-sTCP:LISTEN", "-Fpct"],
             capture_output=True,
             text=True,
             check=False,
@@ -121,8 +124,8 @@ class GatewayProcessManager:
         log_store: LogStore = LOG_STORE,
     ) -> None:
         self.root = root or Path(__file__).resolve().parents[1]
-        self.host = host
-        self.port = port
+        self.host = validate_gateway_host(host)
+        self.port = port or GATEWAY_PORT
         self._process_factory = process_factory
         self._health_checker = health_checker or (lambda: _health_check(self.host, self.port))
         self._external_process = external_process or (
@@ -168,7 +171,12 @@ class GatewayProcessManager:
             try:
                 self._process = self._process_factory(command, self.root)
                 self._last_error = None
-                self._log_store.emit("gateway", "info", "Gateway iniciando", {"port": self.port})
+                self._log_store.emit(
+                    "gateway",
+                    "info",
+                    "Gateway iniciando",
+                    {"host": self.host, "port": self.port},
+                )
             except OSError as error:
                 self._process = None
                 self._last_error = str(error)
@@ -188,7 +196,12 @@ class GatewayProcessManager:
                     self._process.wait(timeout=3.0)
             self._process = None
             self._last_error = None
-            self._log_store.emit("gateway", "info", "Gateway parado", {"port": self.port})
+            self._log_store.emit(
+                "gateway",
+                "info",
+                "Gateway parado",
+                {"host": self.host, "port": self.port},
+            )
             return GatewayStatus("stopped", self.host, self.port)
 
     def release_external(self) -> GatewayStatus:
@@ -210,6 +223,8 @@ class GatewayProcessManager:
             )
             return GatewayStatus("stopped", self.host, self.port)
 
-    def restart(self) -> GatewayStatus:
+    def restart(self, host: str | None = None) -> GatewayStatus:
         self.stop()
+        if host is not None:
+            self.host = validate_gateway_host(host)
         return self.start()
