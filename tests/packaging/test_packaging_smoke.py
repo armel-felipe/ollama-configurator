@@ -6,7 +6,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from scripts.build_backend import _remove_macos_metadata
+from scripts.build_backend import _pyinstaller_command, _remove_macos_metadata
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -29,6 +29,10 @@ def test_backend_packaging_dry_run_is_local_and_versioned(tmp_path: Path) -> Non
     assert manifest["bind_host"] == "127.0.0.1"
     assert manifest["ports"] == {"api": 8787, "gateway": 11435}
     assert manifest["version"]
+
+
+def test_backend_packaging_uses_the_current_python_for_pyinstaller() -> None:
+    assert _pyinstaller_command() == [sys.executable, "-m", "PyInstaller"]
 
 
 def test_frontend_packaging_dry_run_is_versioned(tmp_path: Path) -> None:

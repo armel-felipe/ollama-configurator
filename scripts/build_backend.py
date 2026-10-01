@@ -10,7 +10,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_VERSION = "0.1.4"
+DEFAULT_VERSION = "0.1.5"
 
 
 def _manifest() -> dict[str, object]:
@@ -33,6 +33,11 @@ def _remove_macos_metadata(root: Path) -> None:
             path.unlink(missing_ok=True)
 
 
+def _pyinstaller_command() -> list[str]:
+    """Run PyInstaller from the same Python environment as this build script."""
+    return [sys.executable, "-m", "PyInstaller"]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Build the Ollama Configurator backend.")
     parser.add_argument("--output", type=Path, default=ROOT / "dist" / "backend")
@@ -48,18 +53,10 @@ def main() -> int:
         print(json.dumps(manifest))
         return 0
 
-    pyinstaller = shutil.which("pyinstaller")
-    if pyinstaller is None:
-        print(
-            "PyInstaller não encontrado. Instale-o no ambiente de build antes de empacotar.",
-            file=sys.stderr,
-        )
-        return 2
-
     with tempfile.TemporaryDirectory(prefix="ollama-configurator-pyinstaller-") as work_dir:
         subprocess.run(
             [
-                pyinstaller,
+                *_pyinstaller_command(),
                 "--noconfirm",
                 "--clean",
                 "--onedir",
