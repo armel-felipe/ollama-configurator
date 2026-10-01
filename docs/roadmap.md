@@ -180,6 +180,15 @@ duplicidade entre **Iniciar gateway** e **Iniciar servidor**, renomear
 visualmente as ações de salvar, aplicar e restaurar. Essa correção fica registrada
 como a próxima passada de UX, sem alterar o escopo dos logs operacionais.
 
+### Próxima melhoria de distribuição — versão disponível na aplicação
+
+Fica registrada para os próximos ciclos a inclusão de um indicador discreto na
+UI com a versão instalada e a versão publicada mais recente. A consulta deve
+ser somente leitura, ter estado explícito quando estiver indisponível e não
+impedir o uso local quando não houver rede. A implementação deve ser feita
+depois da estabilização do instalador, para não misturar atualização de
+distribuição com o diagnóstico do bundle v0.1.4.
+
 ## Correção de estabilidade do editor de modelo — implementado
 
 O editor de modelo deixou de recarregar o perfil quando o componente pai apenas
