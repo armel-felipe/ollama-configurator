@@ -8,8 +8,9 @@
 4. Execute `cd frontend && npm ci`.
 5. Inicie os dois serviços juntos com `uv run python scripts/dev.py`.
 6. Abra `http://127.0.0.1:5173`.
-7. Para clientes externos, inicie o gateway em `127.0.0.1:11435`:
-   `uv run uvicorn backend.gateway:app --host 127.0.0.1 --port 11435`.
+7. Para clientes externos, use a configuração **Acesso do gateway** na UI. O
+   padrão é `127.0.0.1`; selecione `0.0.0.0`, salve e aplique para escutar em
+   todas as interfaces. A aplicação reinicia somente o gateway nessa troca.
 
 O botão de retry da interface apenas repete a consulta. Se o backend estiver
 parado, a tela informa explicitamente que `127.0.0.1:8787` precisa ser
@@ -32,12 +33,15 @@ final será tratado em uma etapa posterior e não exige comandos Python do usuá
 ## Acesso via Tailscale
 
 O gateway é a única porta que deve ser usada por OpenCode ou por outro
-computador. Para expô-lo na tailnet, inicie-o no IP Tailscale do host que roda o
-Ollama e defina `OLLAMA_GATEWAY_API_KEY`. Exemplo:
+computador. Para expô-lo na tailnet, selecione `Rede local e Tailscale
+(0.0.0.0)` na UI, salve e clique em **Aplicar e reiniciar gateway**. O
+endereço `0.0.0.0` é somente o bind local; clientes devem usar o IP Tailscale
+real do host que roda o Ollama. Defina `OLLAMA_GATEWAY_API_KEY` quando houver
+acesso remoto:
 
 ```bash
 OLLAMA_GATEWAY_API_KEY='defina-uma-chave-forte' \
-  uv run uvicorn backend.gateway:app --host <IP-TAILSCALE-DO-HOST> --port 11435
+  uv run uvicorn backend.gateway:app --host 0.0.0.0 --port 11435
 ```
 
 No cliente remoto, use `http://<IP-TAILSCALE-DO-HOST>:11435/v1` e a mesma chave.

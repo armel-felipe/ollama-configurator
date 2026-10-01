@@ -35,5 +35,7 @@ Windows produz um pacote portátil `.zip` com scripts de instalação. Um
 instalador `.exe` assinado ainda é uma etapa de publicação posterior.
 
 Em todos os casos, o serviço permanece local-only por padrão (`127.0.0.1`),
-com a gateway em `11435`. A exposição via Tailscale continua sendo uma decisão
-explícita de configuração, não um efeito colateral do instalador.
+com o gateway em `11435`. A exposição via Tailscale é uma decisão explícita
+na UI: o usuário salva `0.0.0.0` como bind e aplica a alteração, o que reinicia
+somente o gateway. O cliente remoto usa o IP Tailscale real da máquina
+servidora; essa configuração não é um efeito colateral do instalador.

@@ -23,7 +23,10 @@ export function ConnectionsPage({ models, selectedModel, gateway, onSelectModel 
   const [selectedClient, setSelectedClient] = useState<ConnectionClientId>("terminal");
   const [shell, setShell] = useState<ShellKind>("posix");
   const [copiedClient, setCopiedClient] = useState<ConnectionClientId | null>(null);
-  const host = gateway ? `http://${gateway.host}:${gateway.port}` : fallbackHost;
+  const networkBind = gateway?.host === "0.0.0.0";
+  const host = gateway
+    ? networkBind ? `http://<IP_TAILSCALE>:${gateway.port}` : `http://${gateway.host}:${gateway.port}`
+    : fallbackHost;
   const client = connectionClients.find((item) => item.id === selectedClient) ?? connectionClients[0];
   const gatewayRunning = gateway?.state === "running";
 
@@ -45,7 +48,7 @@ export function ConnectionsPage({ models, selectedModel, gateway, onSelectModel 
         </div>
         <div className={`connection-host${gatewayRunning ? " is-running" : ""}`}>
           <span className="status-dot" aria-hidden="true" />
-          Gateway {gatewayRunning ? "ativo" : "parado"} · {host}
+          Gateway {gatewayRunning ? "ativo" : "parado"} · {networkBind ? "escutando em todas as interfaces" : host}
         </div>
       </div>
 
@@ -89,7 +92,7 @@ export function ConnectionsPage({ models, selectedModel, gateway, onSelectModel 
         <span className="connection-guidance-mark"><ConnectionIcon id={selectedClient} /></span>
         <div>
           <strong>{copiedClient ? `Comando do ${client.label} copiado` : "Clique em um card para copiar o comando"}</strong>
-          <p>{selectedModel ? `Modelo ${selectedModel} · ${host}` : "Selecione um modelo antes de copiar um comando."}</p>
+          <p>{selectedModel ? `Modelo ${selectedModel} · ${networkBind ? "use o IP Tailscale real da máquina servidora" : host}` : "Selecione um modelo antes de copiar um comando."}</p>
         </div>
         {!gatewayRunning && <span className="connection-warning"><span className="status-dot" aria-hidden="true" /> Gateway parada</span>}
       </div>

@@ -19,8 +19,10 @@ está indisponível.
 # Segurança do gateway
 
 O gateway não deve ser exposto diretamente à internet. O padrão é bind em
-`127.0.0.1:11435`. Para acesso por Tailscale, o bind deve ser explícito no IP
-Tailscale do host e `OLLAMA_GATEWAY_API_KEY` deve estar definido.
+`127.0.0.1:11435`. Para acesso por Tailscale, a UI permite salvar e aplicar
+`0.0.0.0` como endereço de escuta; esse valor significa todas as interfaces,
+não é um endereço para clientes. Clientes devem usar o IP Tailscale real do
+host e `OLLAMA_GATEWAY_API_KEY` deve estar definido.
 
 A autenticação aceita `x-api-key` ou `Authorization: Bearer <chave>`. A porta
 original do Ollama (`11434`) deve continuar restrita ao host. ACLs do Tailscale e

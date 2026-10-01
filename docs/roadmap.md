@@ -102,6 +102,22 @@ confirmadas em `/api/ps` e no próprio `OLLAMA_HOST=http://127.0.0.1:11435
 ollama ps`. Uma inferência externa via `/api/generate` também respondeu depois
 da troca para 64K, mantendo `context_length: 65536` no runtime.
 
+## Bind de rede configurável — implementação concluída
+
+O bind do gateway agora é uma configuração persistida, com `127.0.0.1` como
+padrão seguro e `0.0.0.0` como opção explícita para LAN/Tailscale. Salvar o
+valor não reinicia nada; **Aplicar e reiniciar gateway** encerra e recria
+somente o gateway com o endereço salvo. A UI diferencia bind salvo, efetivo e
+reinício pendente.
+
+Quando o bind é `0.0.0.0`, a tela de conexão não transforma esse valor em um
+endereço de cliente: ela orienta informar o IP Tailscale real da máquina
+servidora. Essa decisão evita anunciar um endpoint inválido e mantém o Ollama
+`11434` fora da rede. O contrato técnico está em
+`docs/api-contract.md`; o desenho e a execução estão registrados em
+`docs/superpowers/specs/2026-10-01-gateway-network-bind-design.md` e
+`docs/superpowers/plans/2026-10-01-gateway-network-bind.md`.
+
 ## Etapa 8 — Configurações globais do servidor: concluída em macOS
 
 A aplicação agora exibe as configurações globais antes da seleção de modelo,

@@ -42,4 +42,16 @@ describe("ConnectionsPage", () => {
     expect(writeText).toHaveBeenCalledWith("export OLLAMA_HOST=http://127.0.0.1:11435\nollama run qwen3.8:27b-mlx --verbose");
     await waitFor(() => expect(screen.getByText(/comando do terminal copiado/i)).toBeInTheDocument());
   });
+
+  it("uses an explicit Tailscale placeholder when the gateway listens on all interfaces", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText } });
+    render(<ConnectionsPage models={models} selectedModel={models[0].name} gateway={{ state: "running", host: "0.0.0.0", port: 11435 }} onSelectModel={() => undefined} />);
+
+    fireEvent.click(within(screen.getByRole("group", { name: /clientes ollama/i })).getByRole("button", { name: /^terminal executar/i }));
+
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith("export OLLAMA_HOST=http://<IP_TAILSCALE>:11435\nollama run qwen3.8:27b-mlx --verbose"));
+    expect(screen.getByText(/IP Tailscale real/i)).toBeInTheDocument();
+    expect(screen.getByText(/escutando em todas as interfaces/i)).toBeInTheDocument();
+  });
 });

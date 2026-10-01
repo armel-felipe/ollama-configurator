@@ -35,7 +35,19 @@ limitação explicitamente.
 
 ## Runtime Gateway
 
-O gateway é executado separadamente em `127.0.0.1:11435` por padrão:
+O gateway é executado separadamente em `127.0.0.1:11435` por padrão. A UI pode
+salvar `0.0.0.0` como endereço de escuta para LAN/Tailscale; essa alteração só
+fica efetiva após `POST /api/gateway/apply`:
+
+- `GET /api/gateway/settings` retorna `host`, `effective_host`, `port`,
+  `pending_restart`, `options` e `warning`.
+- `PUT /api/gateway/settings` recebe `{ "host": "127.0.0.1" }` ou
+  `{ "host": "0.0.0.0" }` e não reinicia o gateway.
+- `POST /api/gateway/apply` encerra o processo gerenciado, inicia o bind salvo
+  e retorna `{ "status": ..., "settings": ... }`.
+
+Quando `host` é `0.0.0.0`, o cliente deve usar o IP Tailscale real da máquina,
+por exemplo `http://100.x.y.z:11435`; `0.0.0.0` é apenas endereço de escuta.
 
 - `POST /api/generate` mantém o formato Ollama e injeta o perfil salvo do modelo.
 - `POST /api/chat` mantém o formato nativo de chat do Ollama e injeta o perfil salvo do modelo.
