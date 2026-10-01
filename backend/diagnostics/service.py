@@ -23,4 +23,9 @@ def collect_diagnostics(client: OllamaClient, detector: HardwareDetector) -> Dia
             models = client.list_models()
         except Exception:
             models = []
-    return DiagnosticsSnapshot(application_version=get_version(), ollama=ollama, hardware=detector.detect(), models=models)
+    return DiagnosticsSnapshot(
+        application_version=get_version(),
+        ollama=ollama,
+        hardware=detector.detect(),
+        models=models,
+    )

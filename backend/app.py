@@ -75,7 +75,11 @@ def _resolve_frontend_dir() -> Path | None:
         ]
     )
     for candidate in candidates:
-        if candidate is not None and (candidate / "index.html").is_file() and (candidate / "assets").is_dir():
+        if (
+            candidate is not None
+            and (candidate / "index.html").is_file()
+            and (candidate / "assets").is_dir()
+        ):
             return candidate.resolve()
     return None
 
