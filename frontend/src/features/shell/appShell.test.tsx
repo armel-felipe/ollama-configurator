@@ -15,7 +15,10 @@ describe("AppShell", () => {
       </ThemeProvider>,
     );
 
-    expect(screen.getByText("Ollama Configurator v0.1.9")).toBeInTheDocument();
+    expect(screen.getByText("Ollama Configurator v0.1.10")).toBeInTheDocument();
+    const footer = screen.getByTestId("sidebar-footer");
+    expect(footer.firstElementChild).toHaveTextContent("Ollama Configurator v0.1.10");
+    expect(footer.lastElementChild).toHaveTextContent("Gateway 11435");
   });
 
   it("renders accessible workspace navigation and marks the active section", () => {

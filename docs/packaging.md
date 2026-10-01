@@ -7,6 +7,10 @@ O release é construído em duas camadas:
 2. `scripts/build_frontend.mjs` executa `npm ci`, compila o frontend a partir do
    lockfile e copia o `dist` para o artefato final.
 
+Os dois builders leem a versão única em `VERSION`. A aplicação também consegue
+localizar automaticamente o frontend empacotado quando iniciada diretamente,
+sem depender de `OLLAMA_CONFIGURATOR_FRONTEND_DIR`.
+
 ## Desenvolvimento e smoke test
 
 ```bash

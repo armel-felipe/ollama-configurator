@@ -1,6 +1,7 @@
 # Processo de release
 
-1. Atualizar a versão em `backend/config.py` e `frontend/package.json`.
+1. Atualizar somente o arquivo `VERSION`; os manifests, a UI e os artefatos
+   devem consumir essa mesma versão.
 2. Preparar o ambiente de empacotamento com `uv sync --locked --all-groups`.
    O PyInstaller deve ser executado pelo mesmo Python do projeto; não instalar
    PyInstaller em um Python global diferente do usado por `uv run`.

@@ -16,7 +16,7 @@ describe("DiagnosticsPage", () => {
     render(
       <DiagnosticsPage
         loadDiagnostics={async () => ({
-          application_version: "0.1.9",
+          application_version: "0.1.10",
           ollama: { available: true, version: "0.5.7" },
           hardware: { os: "macos", architecture: "arm64" },
           models: [{ name: "qwen3.6:35b-a3b-nvfp4" }],
@@ -31,7 +31,7 @@ describe("DiagnosticsPage", () => {
     render(
       <DiagnosticsPage
         loadDiagnostics={async () => ({
-          application_version: "0.1.9",
+          application_version: "0.1.10",
           ollama: { available: true, version: "0.5.7" },
           hardware: { os: "macos", architecture: "arm64", memoryBytes: 36 * 1024 ** 3 },
           models: [{ name: "qwen:latest", size: 123 }],

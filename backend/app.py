@@ -1,4 +1,5 @@
 import os
+import sys
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -60,15 +61,34 @@ app.include_router(reset_router)
 app.include_router(server_settings_router)
 
 
-frontend_dir = os.environ.get("OLLAMA_CONFIGURATOR_FRONTEND_DIR")
-if frontend_dir:
-    frontend_path = Path(frontend_dir).expanduser().resolve()
-    if (frontend_path / "index.html").is_file():
-        app.mount("/assets", StaticFiles(directory=frontend_path / "assets"), name="assets")
+def _resolve_frontend_dir() -> Path | None:
+    configured = os.environ.get("OLLAMA_CONFIGURATOR_FRONTEND_DIR")
+    candidates = [Path(configured).expanduser() if configured else None]
 
-        @app.get("/", include_in_schema=False)
-        def frontend_index() -> FileResponse:
-            return FileResponse(frontend_path / "index.html")
+    executable_root = Path(sys.executable).resolve()
+    candidates.extend(
+        [
+            Path(getattr(sys, "_MEIPASS", "")) / "frontend",
+            executable_root.parents[2] / "frontend" if len(executable_root.parents) > 2 else None,
+            Path(__file__).resolve().parents[1] / "frontend" / "dist",
+            Path(__file__).resolve().parents[1] / "dist" / "frontend",
+        ]
+    )
+    for candidate in candidates:
+        if candidate is not None and (candidate / "index.html").is_file() and (candidate / "assets").is_dir():
+            return candidate.resolve()
+    return None
+
+
+frontend_path = _resolve_frontend_dir()
+if frontend_path:
+    assets_path = frontend_path / "assets"
+    if assets_path.is_dir():
+        app.mount("/assets", StaticFiles(directory=assets_path), name="assets")
+
+    @app.get("/", include_in_schema=False)
+    def frontend_index() -> FileResponse:
+        return FileResponse(frontend_path / "index.html")
 
 
 @app.get("/api/health", response_model=HealthResponse)

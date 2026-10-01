@@ -56,9 +56,9 @@ export function AppShell({ children, selectedSection, onSectionChange }: Props) 
                 </a>
               ))}
             </nav>
-            <div className="nav-footer">
-              <span className="status-dot" aria-hidden="true" /> Gateway <span>11435</span>
-              <span aria-label="Versão do Ollama Configurator">Ollama Configurator v{__APP_VERSION__}</span>
+            <div className="nav-footer" data-testid="sidebar-footer">
+              <div className="nav-version" aria-label="Versão do Ollama Configurator">Ollama Configurator v{__APP_VERSION__}</div>
+              <div className="nav-gateway"><span className="status-dot" aria-hidden="true" /> Gateway <span>11435</span></div>
             </div>
           </div>
         </aside>
