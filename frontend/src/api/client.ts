@@ -1,4 +1,5 @@
 export type DiagnosticsSnapshot = {
+  application_version: string;
   ollama: { available: boolean; version?: string; error?: string };
   hardware: {
     os: string;

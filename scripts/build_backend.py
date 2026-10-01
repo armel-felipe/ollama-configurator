@@ -9,14 +9,15 @@ import sys
 import tempfile
 from pathlib import Path
 
+from backend.version import get_version
+
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_VERSION = "0.1.8"
 
 
 def _manifest() -> dict[str, object]:
     return {
         "artifact": "OllamaConfiguratorBackend",
-        "version": os.environ.get("OLLAMA_CONFIGURATOR_VERSION", DEFAULT_VERSION),
+        "version": os.environ.get("OLLAMA_CONFIGURATOR_VERSION", get_version()),
         "bind_host": "127.0.0.1",
         "ports": {"api": 8787, "gateway": 11435},
         "entrypoint": "backend.__main__",
@@ -70,6 +71,8 @@ def main() -> int:
                 work_dir,
                 "--collect-submodules",
                 "backend",
+                "--add-data",
+                f"{ROOT / 'VERSION'}{os.pathsep}.",
                 str(ROOT / "backend" / "__main__.py"),
             ],
             cwd=ROOT,

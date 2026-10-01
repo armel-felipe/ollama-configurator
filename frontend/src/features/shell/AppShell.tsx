@@ -56,7 +56,10 @@ export function AppShell({ children, selectedSection, onSectionChange }: Props) 
                 </a>
               ))}
             </nav>
-            <div className="nav-footer"><span className="status-dot" aria-hidden="true" /> Gateway <span>11435</span></div>
+            <div className="nav-footer">
+              <span className="status-dot" aria-hidden="true" /> Gateway <span>11435</span>
+              <span aria-label="Versão do Ollama Configurator">Ollama Configurator v{__APP_VERSION__}</span>
+            </div>
           </div>
         </aside>
         <main className="workspace-content" data-testid="workspace-content-scroll">{children}</main>

@@ -26,6 +26,7 @@ type Props = {
 export function ModelSettingsPage({ modelId, loadSettings, saveSettings, applySettings, loadRuntime, onStateChange }: Props) {
   const loadSettingsRef = useRef(loadSettings);
   loadSettingsRef.current = loadSettings;
+  const loadRequestRef = useRef(0);
   const [options, setOptions] = useState<Options>({});
   const [defaults, setDefaults] = useState<Record<string, boolean>>({
     num_ctx: true,
@@ -48,10 +49,12 @@ export function ModelSettingsPage({ modelId, loadSettings, saveSettings, applySe
   }, [dirty, error, onStateChange, runtime]);
 
   const load = useCallback(() => {
+    const requestId = ++loadRequestRef.current;
     setLoading(true);
     setError(null);
     void loadSettingsRef.current()
       .then(({ options: loaded, thinking: loadedThinking, defaults: loadedDefaults }) => {
+        if (requestId !== loadRequestRef.current) return;
         setOptions(loaded);
         setThinking(loadedThinking ?? null);
         setThinkingValue(loaded.think ?? "default");
@@ -64,8 +67,14 @@ export function ModelSettingsPage({ modelId, loadSettings, saveSettings, applySe
           keep_alive: loaded.keep_alive === undefined,
         });
       })
-      .catch((reason: unknown) => setError(reason instanceof Error ? reason.message : "Falha ao carregar configurações"))
-      .finally(() => setLoading(false));
+      .catch((reason: unknown) => {
+        if (requestId === loadRequestRef.current) {
+          setError(reason instanceof Error ? reason.message : "Falha ao carregar configurações");
+        }
+      })
+      .finally(() => {
+        if (requestId === loadRequestRef.current) setLoading(false);
+      });
   }, [modelId]);
 
   useEffect(() => { load(); }, [load, modelId]);
@@ -102,6 +111,13 @@ export function ModelSettingsPage({ modelId, loadSettings, saveSettings, applySe
     }));
   };
   const booleanThinking = thinking?.values.every((value) => typeof value === "boolean") ?? false;
+  const effectiveThinking = thinkingValue === "default" ? thinking?.default : thinkingValue;
+  const resetThinking = () => {
+    setDirty(true);
+    setMessage("Alterações não salvas");
+    setRuntime(null);
+    setThinkingValue("default");
+  };
   const save = async () => {
     const patch: Record<string, number | string | boolean> = {};
     (Object.keys(defaults) as Array<keyof Options>).forEach((name) => {
@@ -178,21 +194,22 @@ export function ModelSettingsPage({ modelId, loadSettings, saveSettings, applySe
             <p>Controle se o modelo deve usar raciocínio explícito antes da resposta.</p>
           </div>
           {booleanThinking ? (
-            <label className="switch-control">
-              <input
-                type="checkbox"
-                aria-label="Thinking"
-                checked={thinkingValue === true}
-                onChange={(event) => {
-                  setDirty(true);
-                  setMessage("Alterações não salvas");
-                  setRuntime(null);
-                  setThinkingValue(event.target.checked);
-                }}
-              />
+            <button
+              className="switch-control"
+              type="button"
+              role="switch"
+              aria-label="Thinking"
+              aria-checked={effectiveThinking === true}
+              onClick={() => {
+                setDirty(true);
+                setMessage("Alterações não salvas");
+                setRuntime(null);
+                setThinkingValue(effectiveThinking === true ? false : true);
+              }}
+            >
               <span className="switch-track" aria-hidden="true"><span /></span>
-              <span><strong>{thinkingValue === true ? "Ligado" : "Desligado"}</strong><small>Valor booleano enviado ao Ollama</small></span>
-            </label>
+              <span><strong>{effectiveThinking === true ? "Ligado" : "Desligado"}</strong><small>{thinkingValue === "default" ? "Ollama Default" : "Valor booleano enviado ao Ollama"}</small></span>
+            </button>
           ) : (
             <label className="select-control" htmlFor="thinking-level">
               <span>Nível disponível</span>
@@ -212,6 +229,11 @@ export function ModelSettingsPage({ modelId, loadSettings, saveSettings, applySe
               </select>
             </label>
           )}
+          {thinkingValue !== "default" ? (
+            <button className="default-toggle" type="button" onClick={resetThinking} aria-label="Thinking Ollama Default">
+              Ollama Default
+            </button>
+          ) : null}
         </div>
       ) : null}
       <details className="profile-section advanced-section">

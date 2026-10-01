@@ -22,6 +22,7 @@ describe("operational status integration", () => {
     render(
       <DiagnosticsPage
         loadDiagnostics={async () => ({
+          application_version: "0.1.9",
           ollama: { available: true, version: "0.40.0" },
           hardware: { os: "macos", architecture: "arm64" },
           models: [],

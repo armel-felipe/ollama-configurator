@@ -87,12 +87,68 @@ describe("ModelSettingsPage", () => {
       />,
     );
 
-    await waitFor(() => expect(screen.getByRole("checkbox", { name: /thinking/i })).toBeInTheDocument());
-    expect(screen.getByRole("checkbox", { name: /thinking/i })).not.toBeChecked();
-    fireEvent.click(screen.getByRole("checkbox", { name: /thinking/i }));
+    await waitFor(() => expect(screen.getByRole("switch", { name: /thinking/i })).toBeInTheDocument());
+    expect(screen.getByRole("switch", { name: /thinking/i })).toHaveAttribute("aria-checked", "false");
+    fireEvent.click(screen.getByRole("switch", { name: /thinking/i }));
     fireEvent.click(screen.getByRole("button", { name: /salvar/i }));
 
     await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent(/configurações salvas/i));
+  });
+
+  it("toggles boolean thinking in both directions when clicked", async () => {
+    render(
+      <ModelSettingsPage
+        modelId="qwen3.6:35b-a3b-nvfp4"
+        loadSettings={async () => ({ options: { think: false }, thinking: { values: [false, true], default: true } })}
+        saveSettings={vi.fn().mockResolvedValue({ options: {} })}
+        applySettings={vi.fn().mockResolvedValue({ applied: true })}
+      />,
+    );
+
+    const thinking = await screen.findByRole("switch", { name: /thinking/i });
+    expect(thinking).toHaveAttribute("aria-checked", "false");
+    fireEvent.click(thinking);
+    expect(thinking).toHaveAttribute("aria-checked", "true");
+    fireEvent.click(thinking);
+    expect(thinking).toHaveAttribute("aria-checked", "false");
+  });
+
+  it("reflects a true Ollama default when thinking has no explicit override", async () => {
+    render(
+      <ModelSettingsPage
+        modelId="qwen3.6:35b-a3b-nvfp4"
+        loadSettings={async () => ({ options: {}, thinking: { values: [false, true], default: true } })}
+        saveSettings={vi.fn().mockResolvedValue({ options: {} })}
+        applySettings={vi.fn().mockResolvedValue({ applied: true })}
+      />,
+    );
+
+    await waitFor(() => expect(screen.getByRole("switch", { name: /thinking/i })).toHaveAttribute("aria-checked", "true"));
+  });
+
+  it("does not let a previous model response overwrite the newly selected model", async () => {
+    let resolveFirst!: (value: { options: { num_ctx: number } }) => void;
+    const firstResponse = new Promise<{ options: { num_ctx: number } }>((resolve) => {
+      resolveFirst = resolve;
+    });
+    let currentModel = "first";
+    const loadSettings = vi.fn(() => currentModel === "first"
+      ? firstResponse
+      : Promise.resolve({ options: { num_ctx: 65536 } }));
+    const props = {
+      loadSettings,
+      saveSettings: vi.fn().mockResolvedValue({ options: {} }),
+      applySettings: vi.fn().mockResolvedValue({ applied: true }),
+    };
+    const { rerender } = render(<ModelSettingsPage modelId="first" {...props} />);
+
+    currentModel = "second";
+    rerender(<ModelSettingsPage modelId="second" {...props} />);
+    await waitFor(() => expect(screen.getByLabelText("Context Window", { exact: true })).toHaveValue(65536));
+
+    resolveFirst({ options: { num_ctx: 32768 } });
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(screen.getByLabelText("Context Window", { exact: true })).toHaveValue(65536);
   });
 
   it("persists Default instead of the previous custom value", async () => {

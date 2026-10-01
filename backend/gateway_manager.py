@@ -2,6 +2,7 @@ import os
 import signal
 import subprocess
 import sys
+import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -164,7 +165,18 @@ class GatewayProcessManager:
         with self._lock:
             current = self.status()
             if current.state == "external":
-                raise GatewayManagerError(current.detail or "A porta da gateway está ocupada")
+                # 11435 is dedicated to this gateway. A previous packaged or
+                # development instance must release it before this instance
+                # can apply the requested bind address.
+                self.release_external()
+                deadline = time.monotonic() + 3.0
+                while self._health_checker() and time.monotonic() < deadline:
+                    time.sleep(0.05)
+                current = self.status()
+                if current.state == "external":
+                    raise GatewayManagerError(
+                        current.detail or "A porta da gateway não foi liberada"
+                    )
             if self._process is not None and self._process.poll() is None:
                 return current
             command = _gateway_command(self.host, self.port)

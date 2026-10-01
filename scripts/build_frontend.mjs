@@ -13,9 +13,10 @@ const skipBuild = args.includes("--skip-build");
 const outputIndex = args.indexOf("--output");
 const output = resolve(root, outputIndex >= 0 ? args[outputIndex + 1] : "dist/frontend");
 const packageJson = JSON.parse(await readFile(resolve(frontend, "package.json"), "utf8"));
+const applicationVersion = (await readFile(resolve(root, "VERSION"), "utf8")).trim();
 const manifest = {
   artifact: "OllamaConfiguratorFrontend",
-  version: process.env.OLLAMA_CONFIGURATOR_VERSION ?? packageJson.version,
+  version: process.env.OLLAMA_CONFIGURATOR_VERSION ?? applicationVersion,
   source: "frontend/dist",
   bind_host: "127.0.0.1",
 };

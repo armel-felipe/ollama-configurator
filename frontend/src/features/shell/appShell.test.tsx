@@ -1,9 +1,23 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it } from "vitest";
 import { AppShell } from "./AppShell";
 import { ThemeProvider } from "./ThemeProvider";
 
 describe("AppShell", () => {
+  afterEach(() => cleanup());
+
+  it("declares the configurator application version", () => {
+    render(
+      <ThemeProvider>
+        <AppShell selectedSection="models" onSectionChange={() => undefined}>
+          <h1>Área de trabalho</h1>
+        </AppShell>
+      </ThemeProvider>,
+    );
+
+    expect(screen.getByText("Ollama Configurator v0.1.9")).toBeInTheDocument();
+  });
+
   it("renders accessible workspace navigation and marks the active section", () => {
     const { container } = render(
       <ThemeProvider>

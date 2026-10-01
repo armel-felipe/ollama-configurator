@@ -111,6 +111,35 @@ def test_release_external_listener_terminates_only_identified_process(tmp_path: 
     assert signals and signals[0][0] == 4242
 
 
+def test_start_releases_dedicated_port_before_launching_gateway(tmp_path: Path) -> None:
+    process = FakeProcess()
+    signals: list[tuple[int, int]] = []
+    listener_present = True
+
+    def external_process() -> tuple[int, str] | None:
+        return (4242, "OllamaConfigurator") if listener_present else None
+
+    def release(pid: int, signal: int) -> None:
+        nonlocal listener_present
+        signals.append((pid, signal))
+        listener_present = False
+
+    manager = GatewayProcessManager(
+        root=tmp_path,
+        host="0.0.0.0",
+        process_factory=lambda command, cwd: process,
+        health_checker=lambda: listener_present,
+        external_process=external_process,
+        signal_sender=release,
+    )
+
+    status = manager.start()
+
+    assert status.state == "starting"
+    assert signals and signals[0][0] == 4242
+    assert process.pid == status.pid
+
+
 def test_stop_terminates_only_the_managed_process(tmp_path: Path) -> None:
     process = FakeProcess()
     manager = GatewayProcessManager(

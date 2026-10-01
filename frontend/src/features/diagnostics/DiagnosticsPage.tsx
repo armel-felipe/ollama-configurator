@@ -33,6 +33,7 @@ import { ConnectionsPage } from "../connections/ConnectionsPage";
 import { deriveOperationalStatus, type OperationalAction } from "../status/operationalStatus";
 
 type Props = { loadDiagnostics: () => Promise<DiagnosticsSnapshot> };
+const SELECTED_MODEL_STORAGE_KEY = "ollama-configurator.selected-model";
 
 export function DiagnosticsPage({ loadDiagnostics }: Props) {
   const [data, setData] = useState<DiagnosticsSnapshot | null>(null);
@@ -51,6 +52,19 @@ export function DiagnosticsPage({ loadDiagnostics }: Props) {
   }, [loadDiagnostics]);
 
   useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    if (!data) return;
+    const savedModel = localStorage.getItem(SELECTED_MODEL_STORAGE_KEY);
+    if (savedModel && data.models.some((model) => model.name === savedModel)) {
+      setSelectedModel(savedModel);
+    }
+  }, [data]);
+
+  const selectModel = useCallback((model: string) => {
+    setSelectedModel(model);
+    localStorage.setItem(SELECTED_MODEL_STORAGE_KEY, model);
+  }, []);
 
   if (error) return <ErrorState message={error} onRetry={load} />;
   if (!data) return <LoadingState />;
@@ -104,7 +118,7 @@ export function DiagnosticsPage({ loadDiagnostics }: Props) {
         applySettings={applyGatewaySettings}
         onStateChange={handleGatewayState}
       />
-      <ModelWorkspace models={data.models} selectedModel={selectedModel} onSelect={setSelectedModel}>
+      <ModelWorkspace models={data.models} selectedModel={selectedModel} onSelect={selectModel}>
         {selectedModel ? (
           <ModelSettingsPage
             modelId={selectedModel}
@@ -120,7 +134,7 @@ export function DiagnosticsPage({ loadDiagnostics }: Props) {
         models={data.models}
         selectedModel={selectedModel}
         gateway={gatewayView.status}
-        onSelectModel={setSelectedModel}
+        onSelectModel={selectModel}
       />
       <section className="system-summary" id="diagnostics-section" aria-labelledby="system-heading">
         <div>
