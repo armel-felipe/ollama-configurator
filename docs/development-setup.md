@@ -36,22 +36,38 @@ O gateway é a única porta que deve ser usada por OpenCode ou por outro
 computador. Para expô-lo na tailnet, selecione `Rede local e Tailscale
 (0.0.0.0)` na UI, salve e clique em **Aplicar e reiniciar gateway**. O
 endereço `0.0.0.0` é somente o bind local; clientes devem usar o IP Tailscale
-real do host que roda o Ollama. Defina `OLLAMA_GATEWAY_API_KEY` quando houver
-acesso remoto:
+real do host que roda o Ollama. Na aba **Conectar**, informe somente esse IP em
+**IP Tailscale da máquina servidora** e clique em **Salvar IP**. Hostnames
+MagicDNS, protocolos e portas não são aceitos. O valor fica no `config.json`
+do backend — `~/Library/Application Support/Ollama Configurator/config.json`
+no macOS e `%LOCALAPPDATA%\Ollama Configurator\config.json` no Windows — e
+continua disponível ao alternar entre bind local e de rede. Defina
+`OLLAMA_GATEWAY_API_KEY` quando houver acesso remoto:
 
 ```bash
 OLLAMA_GATEWAY_API_KEY='defina-uma-chave-forte' \
   uv run uvicorn backend.gateway:app --host 0.0.0.0 --port 11435
 ```
 
-No cliente remoto, use `http://<IP-TAILSCALE-DO-HOST>:11435/v1` e a mesma chave.
-Ollama continua em `127.0.0.1:11434`; não exponha diretamente essa porta.
+No cliente remoto, use o IP salvo, por exemplo
+`http://100.87.71.48:11435/v1`, e a mesma chave. Para IPv6, use colchetes, como
+`http://[fd7a:115c:a1e0::1]:11435/v1`. Ollama continua em
+`127.0.0.1:11434`; não exponha diretamente essa porta.
 
-Para o cliente Ollama nativo, configure:
+Para o cliente Ollama nativo, abra **Conectar**, escolha macOS/Linux ou Windows
+e clique no card desejado. A aplicação copia o comando completo usando o IP
+salvo; não é necessário substituir um marcador manualmente. Por exemplo, no
+macOS/Linux:
 
 ```bash
-export OLLAMA_HOST=http://<IP-TAILSCALE-DO-HOST>:11435
+export OLLAMA_HOST=http://100.87.71.48:11435
 ollama run gemma4:26b-mlx --verbose
+```
+
+No Windows PowerShell, a primeira linha correspondente é:
+
+```powershell
+$env:OLLAMA_HOST="http://100.87.71.48:11435"
 ```
 
 Nesse modo, `ollama run` usa o endpoint `/api/chat` da gateway e recebe o perfil

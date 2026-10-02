@@ -33,8 +33,8 @@ A limitação permanece documentada: uma sessão independente iniciada por
 
 O gateway é a porta de entrada compatível com Ollama e OpenAI para clientes como
 OpenCode. Por padrão ele fica somente em `127.0.0.1:11435`; para uso via
-Tailscale, pode escutar explicitamente no IP da interface Tailscale e exige uma
-chave de acesso.
+Tailscale, pode escutar explicitamente em `0.0.0.0:11435` e exige uma chave de
+acesso. O endereço salvo para os clientes é separado desse bind.
 
 QA real concluído: `100.87.71.48:11435` respondeu pelo Tailscale, uma chamada
 OpenAI-compatible chegou ao Gemma4 e o perfil salvo continuou prevalecendo.
@@ -111,12 +111,24 @@ somente o gateway com o endereço salvo. A UI diferencia bind salvo, efetivo e
 reinício pendente.
 
 Quando o bind é `0.0.0.0`, a tela de conexão não transforma esse valor em um
-endereço de cliente: ela orienta informar o IP Tailscale real da máquina
-servidora. Essa decisão evita anunciar um endpoint inválido e mantém o Ollama
-`11434` fora da rede. O contrato técnico está em
+endereço de cliente: ela usa o IP Tailscale persistido da máquina servidora.
+Essa decisão evita anunciar um endpoint inválido e mantém o Ollama `11434` fora
+da rede. O contrato técnico está em
 `docs/api-contract.md`; o desenho e a execução estão registrados em
 `docs/superpowers/specs/2026-10-01-gateway-network-bind-design.md` e
 `docs/superpowers/plans/2026-10-01-gateway-network-bind.md`.
+
+## IP Tailscale persistente na aba Conectar — implementação concluída
+
+A aba **Conectar** agora salva um IPv4 ou IPv6 em `gateway.tailscale_ip` por
+meio de `PUT /api/gateway/tailscale-ip`. O valor persiste no diretório de dados
+da aplicação no macOS e no Windows, sobrevive à recarga da página e à troca
+entre os binds `127.0.0.1` e `0.0.0.0`, e não altera nem reinicia o listener.
+
+Com bind de rede, os comandos macOS/Linux e Windows usam o IP salvo; URLs IPv6
+recebem colchetes. Hostnames, URLs, portas e valores vazios são rejeitados. Sem
+um IP persistido, a cópia fica bloqueada e a interface direciona o foco ao
+campo, sem gerar o antigo marcador manual.
 
 ## Etapa 8 — Configurações globais do servidor: concluída em macOS
 
