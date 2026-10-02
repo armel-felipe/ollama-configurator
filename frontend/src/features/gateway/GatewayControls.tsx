@@ -9,6 +9,7 @@ type Props = {
   releaseExternal: () => Promise<GatewayStatus>;
   getSettings?: () => Promise<GatewaySettings>;
   updateSettings?: (host: string) => Promise<GatewaySettings>;
+  updateTailscaleIp?: (ip: string) => Promise<GatewaySettings>;
   applySettings?: () => Promise<{ status: GatewayStatus; settings: GatewaySettings }>;
   onStateChange?: (status: GatewayStatus, error: string | null, bindPending?: boolean) => void;
 };
@@ -23,10 +24,12 @@ function statusLabel(state: GatewayStatus["state"]): string {
   }[state];
 }
 
-export function GatewayControls({ getStatus, start, stop, restart, releaseExternal, getSettings, updateSettings, applySettings, onStateChange }: Props) {
+export function GatewayControls({ getStatus, start, stop, restart, releaseExternal, getSettings, updateSettings, updateTailscaleIp, applySettings, onStateChange }: Props) {
   const [status, setStatus] = useState<GatewayStatus | null>(null);
   const [settings, setSettings] = useState<GatewaySettings | null>(null);
   const [bindHost, setBindHost] = useState<string>("127.0.0.1");
+  const [tailscaleIp, setTailscaleIp] = useState("");
+  const [tailscaleIpDirty, setTailscaleIpDirty] = useState(false);
   const [bindDirty, setBindDirty] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [settingsError, setSettingsError] = useState<string | null>(null);
@@ -54,6 +57,8 @@ export function GatewayControls({ getStatus, start, stop, restart, releaseExtern
       const next = await getSettings();
       setSettings(next);
       setBindHost(next.host);
+      setTailscaleIp(next.tailscale_ip ?? "");
+      setTailscaleIpDirty(false);
       setBindDirty(false);
       setSettingsMessage(null);
     } catch (reason: unknown) {
@@ -123,6 +128,23 @@ export function GatewayControls({ getStatus, start, stop, restart, releaseExtern
     }
   };
 
+  const saveTailscaleIp = async () => {
+    if (!updateTailscaleIp) return;
+    setSettingsBusy(true);
+    setSettingsError(null);
+    try {
+      const next = await updateTailscaleIp(tailscaleIp.trim());
+      setSettings(next);
+      setTailscaleIp(next.tailscale_ip ?? "");
+      setTailscaleIpDirty(false);
+      setSettingsMessage("IP Tailscale salvo.");
+    } catch (reason: unknown) {
+      setSettingsError(reason instanceof Error ? reason.message : "Falha ao salvar o IP Tailscale");
+    } finally {
+      setSettingsBusy(false);
+    }
+  };
+
   if (!status) return <section aria-labelledby="gateway-heading"><h2 id="gateway-heading">Runtime Gateway</h2><p>Consultando servidor…</p></section>;
 
   const unmanaged = status.state === "external";
@@ -161,6 +183,22 @@ export function GatewayControls({ getStatus, start, stop, restart, releaseExtern
                 </select>
               </label>
               {bindHost === "0.0.0.0" ? <p className="gateway-network-warning" role="alert">{settings.warning ?? "O gateway ficará acessível pelas interfaces de rede desta máquina. Use apenas em uma rede confiável e considere configurar uma chave de API."}</p> : null}
+              {bindHost === "0.0.0.0" && updateTailscaleIp ? (
+                <div className="gateway-tailscale-ip">
+                  <label htmlFor="gateway-tailscale-ip">IP Tailscale da máquina servidora</label>
+                  <div className="gateway-tailscale-ip-row">
+                    <input
+                      id="gateway-tailscale-ip"
+                      type="text"
+                      inputMode="text"
+                      value={tailscaleIp}
+                      placeholder="100.64.0.1"
+                      onChange={(event) => { setTailscaleIp(event.target.value); setTailscaleIpDirty(true); setSettingsMessage(null); setSettingsError(null); }}
+                    />
+                    <button type="button" onClick={() => void saveTailscaleIp()} disabled={settingsBusy || !tailscaleIpDirty}>Salvar IP</button>
+                  </div>
+                </div>
+              ) : null}
               <p className="gateway-effective-state">Salvo: <strong>{settings.host}</strong> · Efetivo agora: <strong>{settings.effective_host}</strong>{settings.pending_restart ? " · aplicação pendente" : ""}</p>
               {bindDirty ? <p className="gateway-settings-message" role="status">Alteração não salva</p> : null}
               {!bindDirty && settingsMessage ? <p className="gateway-settings-message" role="status">{settingsMessage}</p> : null}

@@ -116,6 +116,7 @@ export function DiagnosticsPage({ loadDiagnostics }: Props) {
         releaseExternal={releaseExternalGateway}
         getSettings={getGatewaySettings}
         updateSettings={saveGatewaySettings}
+        updateTailscaleIp={saveGatewayTailscaleIp}
         applySettings={applyGatewaySettings}
         onStateChange={handleGatewayState}
       />
@@ -137,7 +138,6 @@ export function DiagnosticsPage({ loadDiagnostics }: Props) {
         gateway={gatewayView.status}
         onSelectModel={selectModel}
         loadGatewaySettings={getGatewaySettings}
-        saveTailscaleIp={saveGatewayTailscaleIp}
       />
       <section className="system-summary" id="diagnostics-section" aria-labelledby="system-heading">
         <div>

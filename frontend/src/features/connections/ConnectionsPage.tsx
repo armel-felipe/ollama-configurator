@@ -18,20 +18,16 @@ type Props = {
   gateway: GatewayStatus | null;
   onSelectModel: (model: string) => void;
   loadGatewaySettings: () => Promise<GatewaySettings>;
-  saveTailscaleIp: (ip: string) => Promise<GatewaySettings>;
 };
 
 const fallbackHost = "http://127.0.0.1:11435";
 
-export function ConnectionsPage({ models, selectedModel, gateway, onSelectModel, loadGatewaySettings, saveTailscaleIp }: Props) {
+export function ConnectionsPage({ models, selectedModel, gateway, onSelectModel, loadGatewaySettings }: Props) {
   const [selectedClient, setSelectedClient] = useState<ConnectionClientId>("terminal");
   const [shell, setShell] = useState<ShellKind>(() => defaultShellForUserAgent(navigator.userAgent));
   const [copiedClient, setCopiedClient] = useState<ConnectionClientId | null>(null);
-  const [draftTailscaleIp, setDraftTailscaleIp] = useState("");
   const [savedTailscaleIp, setSavedTailscaleIp] = useState<string | null>(null);
-  const [tailscaleStatus, setTailscaleStatus] = useState<"idle" | "saving" | "success">("idle");
   const [tailscaleError, setTailscaleError] = useState<string | null>(null);
-  const tailscaleInputRef = useRef<HTMLInputElement>(null);
   const settingsVersionRef = useRef(0);
   const networkBind = gateway?.host === "0.0.0.0";
   const host = gateway
@@ -50,7 +46,6 @@ export function ConnectionsPage({ models, selectedModel, gateway, onSelectModel,
     void loadGatewaySettings().then((settings) => {
       if (!active || settingsVersion !== settingsVersionRef.current) return;
       setSavedTailscaleIp(settings.tailscale_ip ?? null);
-      setDraftTailscaleIp(settings.tailscale_ip ?? "");
     }).catch((reason: unknown) => {
       if (!active || settingsVersion !== settingsVersionRef.current) return;
       setTailscaleError(reason instanceof Error ? reason.message : "Não foi possível carregar o IP Tailscale");
@@ -58,26 +53,10 @@ export function ConnectionsPage({ models, selectedModel, gateway, onSelectModel,
     return () => { active = false; };
   }, [loadGatewaySettings]);
 
-  async function saveIp() {
-    settingsVersionRef.current += 1;
-    setTailscaleStatus("saving");
-    setTailscaleError(null);
-    try {
-      const settings = await saveTailscaleIp(draftTailscaleIp.trim());
-      setSavedTailscaleIp(settings.tailscale_ip ?? null);
-      setDraftTailscaleIp(settings.tailscale_ip ?? "");
-      setTailscaleStatus("success");
-    } catch (reason: unknown) {
-      setTailscaleStatus("idle");
-      setTailscaleError(reason instanceof Error ? reason.message : "Não foi possível salvar o IP Tailscale");
-    }
-  }
-
   async function copyCommand(clientId: ConnectionClientId) {
     if (!selectedModel) return;
     if (host === null) {
-      setTailscaleError("Informe e salve o IP Tailscale antes de copiar o comando.");
-      tailscaleInputRef.current?.focus();
+      setTailscaleError("Informe e salve o IP Tailscale em Servidor > Acesso do gateway antes de copiar o comando.");
       return;
     }
     const nextCommand = buildConnectionCommand(clientId, selectedModel, shell, host);
@@ -117,32 +96,6 @@ export function ConnectionsPage({ models, selectedModel, gateway, onSelectModel,
         </label>
       </div>
 
-      {networkBind && (
-        <div className="connection-ip-editor">
-          <label htmlFor="connection-tailscale-ip">IP Tailscale da máquina servidora</label>
-          <div className="connection-ip-row">
-            <input
-              ref={tailscaleInputRef}
-              id="connection-tailscale-ip"
-              type="text"
-              inputMode="text"
-              value={draftTailscaleIp}
-              onChange={(event) => {
-                setDraftTailscaleIp(event.target.value);
-                setTailscaleStatus("idle");
-                setTailscaleError(null);
-              }}
-              placeholder="100.64.0.1"
-            />
-            <button type="button" onClick={() => { void saveIp(); }} disabled={tailscaleStatus === "saving"}>
-              {tailscaleStatus === "saving" ? "Salvando…" : "Salvar IP"}
-            </button>
-          </div>
-          {tailscaleError && <p className="connection-ip-feedback is-error" role="alert">{tailscaleError}</p>}
-          {!tailscaleError && tailscaleStatus === "success" && <p className="connection-ip-feedback is-success" role="status">IP Tailscale salvo.</p>}
-        </div>
-      )}
-
       <div className="connection-grid" role="group" aria-label="Clientes Ollama">
         {connectionClients.map((item) => (
           <button
@@ -170,6 +123,7 @@ export function ConnectionsPage({ models, selectedModel, gateway, onSelectModel,
         </div>
         {!gatewayRunning && <span className="connection-warning"><span className="status-dot" aria-hidden="true" /> Gateway parada</span>}
       </div>
+      {tailscaleError && <p className="connection-ip-feedback is-error" role="alert">{tailscaleError}</p>}
       <span className="sr-only" aria-live="polite">{copiedClient ? "Comando copiado para a área de transferência" : ""}</span>
     </section>
   );

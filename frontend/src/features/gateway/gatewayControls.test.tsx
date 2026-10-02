@@ -107,6 +107,46 @@ describe("GatewayControls", () => {
     expect(screen.getByText("Alteração não salva")).toBeInTheDocument();
   });
 
+  it("shows and persists the Tailscale IP inside gateway access", async () => {
+    const saveTailscaleIp = vi.fn().mockResolvedValue({
+      host: "0.0.0.0",
+      effective_host: "0.0.0.0",
+      port: 11435,
+      pending_restart: false,
+      options: ["127.0.0.1", "0.0.0.0"],
+      tailscale_ip: "100.87.71.48",
+      warning: "aviso",
+    });
+    render(
+      <GatewayControls
+        getStatus={async () => ({ state: "running", host: "0.0.0.0", port: 11435, pid: 7 })}
+        start={vi.fn()}
+        stop={vi.fn()}
+        restart={vi.fn()}
+        releaseExternal={vi.fn()}
+        getSettings={async () => ({
+          host: "0.0.0.0",
+          effective_host: "0.0.0.0",
+          port: 11435,
+          pending_restart: false,
+          options: ["127.0.0.1", "0.0.0.0"],
+          tailscale_ip: null,
+          warning: "aviso",
+        })}
+        updateSettings={vi.fn()}
+        updateTailscaleIp={saveTailscaleIp}
+        applySettings={vi.fn()}
+      />,
+    );
+
+    const input = await screen.findByLabelText("IP Tailscale da máquina servidora");
+    fireEvent.change(input, { target: { value: "100.87.71.48" } });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar IP" }));
+
+    await waitFor(() => expect(saveTailscaleIp).toHaveBeenCalledWith("100.87.71.48"));
+    expect(await screen.findByText("IP Tailscale salvo.")).toBeInTheDocument();
+  });
+
   it("does not present the wildcard bind as a client URL", async () => {
     render(
       <GatewayControls
