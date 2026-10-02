@@ -4,6 +4,11 @@ export function defaultShellForUserAgent(userAgent: string): ShellKind {
   return /Windows/i.test(userAgent) ? "powershell" : "posix";
 }
 
+export function gatewayUrlForIp(ip: string, port: number): string {
+  const host = ip.includes(":") ? `[${ip}]` : ip;
+  return `http://${host}:${port}`;
+}
+
 export type ConnectionClientId =
   | "claude"
   | "codex"
