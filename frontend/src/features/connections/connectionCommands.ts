@@ -1,5 +1,9 @@
 export type ShellKind = "posix" | "powershell";
 
+export function defaultShellForUserAgent(userAgent: string): ShellKind {
+  return /Windows/i.test(userAgent) ? "powershell" : "posix";
+}
+
 export type ConnectionClientId =
   | "claude"
   | "codex"

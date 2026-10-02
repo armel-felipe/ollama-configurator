@@ -2,10 +2,19 @@ import { describe, expect, it } from "vitest";
 import {
   buildConnectionCommand,
   connectionClients,
+  defaultShellForUserAgent,
   type ConnectionClientId,
 } from "./connectionCommands";
 
 describe("connection command catalog", () => {
+  it.each([
+    ["Mozilla/5.0 (Windows NT 10.0; Win64; x64)", "powershell"],
+    ["Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)", "posix"],
+    ["Mozilla/5.0 (X11; Linux x86_64)", "posix"],
+    ["Unknown Device", "posix"],
+  ])("selects the default shell for %s", (userAgent, expected) => {
+    expect(defaultShellForUserAgent(userAgent)).toBe(expected);
+  });
   it("contains every requested Ollama client", () => {
     expect(connectionClients.map((client) => client.id)).toEqual([
       "claude",

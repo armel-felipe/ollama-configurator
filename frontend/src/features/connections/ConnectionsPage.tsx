@@ -3,6 +3,7 @@ import type { GatewayStatus } from "../../api/client";
 import {
   buildConnectionCommand,
   connectionClients,
+  defaultShellForUserAgent,
   type ConnectionClientId,
   type ShellKind,
 } from "./connectionCommands";
@@ -21,7 +22,7 @@ const fallbackHost = "http://127.0.0.1:11435";
 
 export function ConnectionsPage({ models, selectedModel, gateway, onSelectModel }: Props) {
   const [selectedClient, setSelectedClient] = useState<ConnectionClientId>("terminal");
-  const [shell, setShell] = useState<ShellKind>("posix");
+  const [shell, setShell] = useState<ShellKind>(() => defaultShellForUserAgent(navigator.userAgent));
   const [copiedClient, setCopiedClient] = useState<ConnectionClientId | null>(null);
   const networkBind = gateway?.host === "0.0.0.0";
   const host = gateway
