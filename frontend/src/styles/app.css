@@ -219,6 +219,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .connection-select { display: grid; gap: 7px; min-width: min(100%, 300px); }
 .connection-select span { color: var(--text-muted); font-size: 11px; font-weight: 750; }
 .connection-select select { min-height: 40px; padding: 0 11px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); }
+.connection-ip-editor { display: grid; gap: 8px; padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-raised); box-shadow: var(--shadow-sm); }
+.connection-ip-editor > label { color: var(--text-muted); font-size: 11px; font-weight: 750; }
+.connection-ip-row { display: flex; gap: 10px; }
+.connection-ip-row input { min-width: 0; min-height: 40px; flex: 1 1 260px; padding: 0 11px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); }
+.connection-ip-row input:focus { border-color: var(--accent); outline: 2px solid color-mix(in srgb, var(--accent) 22%, transparent); outline-offset: 1px; }
+.connection-ip-row button { min-height: 40px; padding: 0 16px; border: 1px solid var(--accent); border-radius: var(--radius-sm); background: var(--accent); color: var(--surface-raised); cursor: pointer; font-weight: 750; }
+.connection-ip-row button:disabled { cursor: wait; opacity: .65; }
+.connection-ip-feedback { margin: 0; font-size: 11px; line-height: 1.4; }
+.connection-ip-feedback.is-error { color: var(--danger); }
+.connection-ip-feedback.is-success { color: var(--success); }
 .connection-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .connection-card { display: flex; align-items: center; gap: 16px; min-height: 96px; padding: 18px 20px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface-raised); color: var(--text); cursor: pointer; text-align: left; box-shadow: var(--shadow-sm); transition: border-color .15s ease, background .15s ease, transform .15s ease; }
 .connection-card:hover { border-color: var(--border-strong); background: var(--surface-subtle); transform: translateY(-1px); }
@@ -292,6 +302,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .connections-page { margin-top: 34px; padding-top: 28px; }
   .connections-toolbar { display: block; }
   .connection-select + .connection-select { margin-top: 12px; }
+  .connection-ip-row { align-items: stretch; flex-direction: column; }
+  .connection-ip-row input { flex-basis: auto; }
   .connection-guidance { align-items: flex-start; }
   .connection-guidance .connection-warning { margin: 8px 0 0; }
   .connection-grid { grid-template-columns: 1fr; }
