@@ -32,6 +32,7 @@ export function ConnectionsPage({ models, selectedModel, gateway, onSelectModel,
   const [tailscaleStatus, setTailscaleStatus] = useState<"idle" | "saving" | "success">("idle");
   const [tailscaleError, setTailscaleError] = useState<string | null>(null);
   const tailscaleInputRef = useRef<HTMLInputElement>(null);
+  const settingsVersionRef = useRef(0);
   const networkBind = gateway?.host === "0.0.0.0";
   const host = gateway
     ? networkBind && savedTailscaleIp
@@ -45,18 +46,20 @@ export function ConnectionsPage({ models, selectedModel, gateway, onSelectModel,
 
   useEffect(() => {
     let active = true;
+    const settingsVersion = ++settingsVersionRef.current;
     void loadGatewaySettings().then((settings) => {
-      if (!active) return;
+      if (!active || settingsVersion !== settingsVersionRef.current) return;
       setSavedTailscaleIp(settings.tailscale_ip ?? null);
       setDraftTailscaleIp(settings.tailscale_ip ?? "");
     }).catch((reason: unknown) => {
-      if (!active) return;
+      if (!active || settingsVersion !== settingsVersionRef.current) return;
       setTailscaleError(reason instanceof Error ? reason.message : "Não foi possível carregar o IP Tailscale");
     });
     return () => { active = false; };
   }, [loadGatewaySettings]);
 
   async function saveIp() {
+    settingsVersionRef.current += 1;
     setTailscaleStatus("saving");
     setTailscaleError(null);
     try {

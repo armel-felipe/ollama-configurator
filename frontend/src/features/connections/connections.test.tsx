@@ -1,11 +1,18 @@
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ComponentProps } from "react";
+import type { GatewaySettings } from "../../api/client";
 import { ConnectionsPage } from "./ConnectionsPage";
 
 const gateway = { state: "stopped" as const, host: "127.0.0.1", port: 11435 };
 const models = [{ name: "qwen3.8:27b-mlx" }, { name: "gemma4:26b-mlx" }];
-const defaultSettings = { host: "127.0.0.1", effective_host: "127.0.0.1", port: 11435, pending_restart: false, options: [], tailscale_ip: null };
+const defaultSettings: GatewaySettings = { host: "127.0.0.1", effective_host: "127.0.0.1", port: 11435, pending_restart: false, options: [], tailscale_ip: null };
+
+function deferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  const promise = new Promise<T>((next) => { resolve = next; });
+  return { promise, resolve };
+}
 
 function renderConnections(overrides: Partial<ComponentProps<typeof ConnectionsPage>> = {}) {
   return render(<ConnectionsPage
@@ -110,6 +117,31 @@ describe("ConnectionsPage", () => {
     expect(await screen.findByText(/IP Tailscale salvo/i)).toBeInTheDocument();
     expect(input).toHaveValue("100.64.0.23");
 
+    fireEvent.click(screen.getByRole("button", { name: /^terminal executar/i }));
+    await waitFor(() => expect(writeText).toHaveBeenLastCalledWith("export OLLAMA_HOST=http://100.64.0.23:11435\nollama run qwen3.8:27b-mlx --verbose"));
+  });
+
+  it("keeps a completed save authoritative when the initial load resolves later", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText } });
+    const pendingLoad = deferred<GatewaySettings>();
+    renderConnections({
+      gateway: { state: "running", host: "0.0.0.0", port: 11435 },
+      loadGatewaySettings: vi.fn().mockReturnValue(pendingLoad.promise),
+      saveTailscaleIp: vi.fn().mockResolvedValue({ ...defaultSettings, host: "0.0.0.0", effective_host: "0.0.0.0", tailscale_ip: "100.64.0.23" }),
+    });
+
+    const input = screen.getByLabelText(/IP Tailscale da máquina servidora/i);
+    fireEvent.change(input, { target: { value: "100.64.0.22" } });
+    fireEvent.click(screen.getByRole("button", { name: /salvar IP/i }));
+    expect(await screen.findByText(/IP Tailscale salvo/i)).toBeInTheDocument();
+
+    await act(async () => {
+      pendingLoad.resolve({ ...defaultSettings, host: "0.0.0.0", effective_host: "0.0.0.0", tailscale_ip: "100.64.0.10" });
+      await pendingLoad.promise;
+    });
+
+    expect(input).toHaveValue("100.64.0.23");
     fireEvent.click(screen.getByRole("button", { name: /^terminal executar/i }));
     await waitFor(() => expect(writeText).toHaveBeenLastCalledWith("export OLLAMA_HOST=http://100.64.0.23:11435\nollama run qwen3.8:27b-mlx --verbose"));
   });
