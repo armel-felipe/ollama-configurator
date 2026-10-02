@@ -1,6 +1,9 @@
 from dataclasses import dataclass
-from ipaddress import ip_address
+from ipaddress import ip_address, ip_network
+import socket
 from typing import Any
+
+import psutil
 
 from backend.logs import LOG_STORE
 from backend.persistence.store import ConfigStore
@@ -54,6 +57,27 @@ def validate_tailscale_ip(value: str) -> str:
         raise ValueError("Informe um IP Tailscale válido, sem protocolo ou porta") from error
 
 
+def local_tailscale_ips() -> set[str]:
+    """Return Tailscale IPv4/IPv6 addresses currently assigned to this host."""
+    addresses: set[str] = set()
+    tailscale_networks = (ip_network("100.64.0.0/10"), ip_network("fd7a:115c:a1e0::/48"))
+    try:
+        interfaces = psutil.net_if_addrs()
+    except (OSError, psutil.Error):
+        return addresses
+    for entries in interfaces.values():
+        for entry in entries:
+            if entry.family not in (socket.AF_INET, socket.AF_INET6):
+                continue
+            try:
+                candidate = ip_address(entry.address.split("%", 1)[0])
+            except ValueError:
+                continue
+            if any(candidate in network for network in tailscale_networks):
+                addresses.add(str(candidate))
+    return addresses
+
+
 class GatewaySettingsService:
     def __init__(self, store: ConfigStore) -> None:
         self.store = store
@@ -99,6 +123,12 @@ class GatewaySettingsService:
         self, value: str, effective_host: str
     ) -> GatewaySettingsState:
         tailscale_ip = validate_tailscale_ip(value)
+        local_ips = local_tailscale_ips()
+        if local_ips and tailscale_ip not in local_ips:
+            raise ValueError(
+                "O IP Tailscale informado não pertence a esta máquina; "
+                f"use um destes endereços: {', '.join(sorted(local_ips))}"
+            )
         effective = validate_gateway_host(effective_host)
         config = self.store.load()
         saved_gateway = config.get("gateway", {})

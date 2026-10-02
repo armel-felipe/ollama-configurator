@@ -199,9 +199,10 @@ export function GatewayControls({ getStatus, start, stop, restart, releaseExtern
                   </div>
                 </div>
               ) : null}
-              <p className="gateway-effective-state">Salvo: <strong>{settings.host}</strong> · Efetivo agora: <strong>{settings.effective_host}</strong>{settings.pending_restart ? " · aplicação pendente" : ""}</p>
+              <p className="gateway-effective-state">Bind salvo: <strong>{settings.host}</strong> · Bind efetivo agora: <strong>{settings.effective_host}</strong>{settings.pending_restart ? " · aplicação pendente" : ""}</p>
               {bindDirty ? <p className="gateway-settings-message" role="status">Alteração não salva</p> : null}
               {!bindDirty && settingsMessage ? <p className="gateway-settings-message" role="status">{settingsMessage}</p> : null}
+              {bindHost === "0.0.0.0" && settings.tailscale_ip ? <p className="gateway-settings-message" role="status">IP usado nos cards de conexão: <strong>{settings.tailscale_ip}</strong>. O IP Tailscale não exige reinício do gateway.</p> : null}
               <div className="gateway-settings-actions">
                 <button type="button" onClick={() => void saveBind()} disabled={settingsBusy || !bindDirty}>Salvar endereço</button>
                 <button className="primary-action" type="button" onClick={() => void applyBind()} disabled={settingsBusy || bindDirty || !settings.pending_restart}>Aplicar e reiniciar gateway</button>
