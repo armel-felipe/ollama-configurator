@@ -24,6 +24,12 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: bash packaging/macos/build-app.sh
+      - name: Verify portable archive
+        run: |
+          unzip -Z1 dist/macos/OllamaConfigurator-macOS-arm64.zip > "$RUNNER_TEMP/macos-zip-list.txt"
+          grep -Fx 'README.md' "$RUNNER_TEMP/macos-zip-list.txt"
+          grep -Fx 'Ollama Configurator.app/Contents/Info.plist' "$RUNNER_TEMP/macos-zip-list.txt"
+          grep -Fx 'Ollama Configurator.app/Contents/Resources/frontend/index.html' "$RUNNER_TEMP/macos-zip-list.txt"
       - uses: actions/upload-artifact@v7
         with:
           name: OllamaConfigurator-macOS-arm64
@@ -47,7 +53,8 @@ jobs:
             echo "Expected macOS installer not found: $dmg" >&2
             exit 1
           fi
-          (cd dist/macos && shasum -a 256 OllamaConfigurator-macOS.dmg > checksums-macOS.txt)
-          gh release upload "$tag" "$dmg" dist/macos/checksums-macOS.txt \
+          zip="dist/macos/OllamaConfigurator-macOS-arm64.zip"
+          (cd dist/macos && shasum -a 256 OllamaConfigurator-macOS.dmg OllamaConfigurator-macOS-arm64.zip > checksums-macOS.txt)
+          gh release upload "$tag" "$dmg" "$zip" dist/macos/checksums-macOS.txt \
             --repo "$repo" \
             --clobber

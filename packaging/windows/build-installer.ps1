@@ -29,5 +29,6 @@ Copy-Item -Path (Join-Path $OutputPath "frontend") -Destination $Payload -Recurs
 Copy-Item -Path (Join-Path $PSScriptRoot "install.ps1") -Destination $OutputPath -Force
 Copy-Item -Path (Join-Path $PSScriptRoot "uninstall.ps1") -Destination $OutputPath -Force
 Copy-Item -Path (Join-Path $PSScriptRoot "run.ps1") -Destination $OutputPath -Force
-Compress-Archive -Path (Join-Path $Payload "*"), (Join-Path $OutputPath "install.ps1"), (Join-Path $OutputPath "uninstall.ps1"), (Join-Path $OutputPath "run.ps1") -DestinationPath (Join-Path $OutputPath "OllamaConfigurator-Windows-x64.zip") -Force
+Copy-Item -Path (Join-Path $PSScriptRoot "README-release.md") -Destination (Join-Path $OutputPath "README.md") -Force
+Compress-Archive -Path (Join-Path $Payload "*"), (Join-Path $OutputPath "README.md"), (Join-Path $OutputPath "install.ps1"), (Join-Path $OutputPath "uninstall.ps1"), (Join-Path $OutputPath "run.ps1") -DestinationPath (Join-Path $OutputPath "OllamaConfigurator-Windows-x64.zip") -Force
 Write-Host "Windows portable installer staged at $OutputPath"

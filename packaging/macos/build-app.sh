@@ -17,6 +17,15 @@ chmod +x "$APP/Contents/MacOS/OllamaConfigurator"
 cp -R "$OUT/backend/OllamaConfiguratorBackend" "$APP/Contents/Resources/backend/"
 cp -R "$OUT/frontend/." "$APP/Contents/Resources/frontend/"
 
+PORTABLE="$OUT/portable"
+ZIP="$OUT/OllamaConfigurator-macOS-arm64.zip"
+rm -rf "$PORTABLE"
+mkdir -p "$PORTABLE"
+cp -R "$APP" "$PORTABLE/Ollama Configurator.app"
+cp "$ROOT/packaging/macos/README-release.md" "$PORTABLE/README.md"
+rm -f "$ZIP"
+ditto -c -k --sequesterRsrc "$PORTABLE" "$ZIP"
+
 if command -v hdiutil >/dev/null 2>&1; then
   hdiutil create -volname "Ollama Configurator" -srcfolder "$APP" -ov -format UDZO \
     "$OUT/OllamaConfigurator-macOS.dmg" >/dev/null

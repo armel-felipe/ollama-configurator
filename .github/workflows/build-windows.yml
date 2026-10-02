@@ -24,6 +24,14 @@ jobs:
       - run: npm ci --prefix frontend
       - run: npm run build --prefix frontend
       - run: powershell -ExecutionPolicy Bypass -File packaging/windows/build-installer.ps1 -SkipFrontendInstall -SkipFrontendBuild
+      - name: Verify portable archive
+        shell: pwsh
+        run: |
+          $target = Join-Path $env:RUNNER_TEMP "ollama-configurator-windows"
+          Expand-Archive dist/windows/OllamaConfigurator-Windows-x64.zip $target
+          @("README.md", "install.ps1", "run.ps1", "uninstall.ps1", "backend/OllamaConfiguratorBackend/OllamaConfiguratorBackend.exe", "frontend/index.html") | ForEach-Object {
+            if (-not (Test-Path (Join-Path $target $_))) { throw "Missing archive entry: $_" }
+          }
       - uses: actions/upload-artifact@v7
         with:
           name: OllamaConfigurator-Windows-x64
