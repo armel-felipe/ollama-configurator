@@ -69,6 +69,38 @@ async def test_gateway_settings_reject_invalid_host_with_422(
 
 
 @pytest.mark.asyncio
+async def test_gateway_tailscale_ip_endpoint_persists_without_restarting(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    manager = FakeSettingsManager()
+    async with await client_for(monkeypatch, tmp_path, manager) as client:
+        response = await client.put(
+            "/api/gateway/tailscale-ip", json={"tailscale_ip": "100.87.71.48"}
+        )
+
+    assert response.status_code == 200
+    assert response.json()["tailscale_ip"] == "100.87.71.48"
+    assert manager.restart_hosts == []
+    assert (
+        ConfigStore(tmp_path / "config.json").load()["gateway"]["tailscale_ip"]
+        == "100.87.71.48"
+    )
+
+
+@pytest.mark.asyncio
+async def test_gateway_tailscale_ip_endpoint_rejects_hostname(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    async with await client_for(monkeypatch, tmp_path, FakeSettingsManager()) as client:
+        response = await client.put(
+            "/api/gateway/tailscale-ip", json={"tailscale_ip": "mac.tailnet.ts.net"}
+        )
+
+    assert response.status_code == 422
+    assert "IP Tailscale" in response.json()["detail"]
+
+
+@pytest.mark.asyncio
 async def test_gateway_apply_restarts_only_gateway_with_saved_host(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:

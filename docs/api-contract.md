@@ -39,15 +39,21 @@ O gateway é executado separadamente em `127.0.0.1:11435` por padrão. A UI pode
 salvar `0.0.0.0` como endereço de escuta para LAN/Tailscale; essa alteração só
 fica efetiva após `POST /api/gateway/apply`:
 
-- `GET /api/gateway/settings` retorna `host`, `effective_host`, `port`,
-  `pending_restart`, `options` e `warning`.
+- `GET /api/gateway/settings` retorna `host`, `effective_host`, `tailscale_ip`,
+  `port`, `pending_restart`, `options` e `warning`.
 - `PUT /api/gateway/settings` recebe `{ "host": "127.0.0.1" }` ou
-  `{ "host": "0.0.0.0" }` e não reinicia o gateway.
+  `{ "host": "0.0.0.0" }`, preserva `tailscale_ip` e não reinicia o gateway.
+- `PUT /api/gateway/tailscale-ip` recebe, por exemplo,
+  `{ "tailscale_ip": "100.87.71.48" }`, preserva `host` e retorna as
+  configurações completas do gateway. O valor deve ser somente um IPv4 ou
+  IPv6 válido; hostname, protocolo, porta, caminho e valor vazio retornam
+  `422` com a mensagem de validação do backend.
 - `POST /api/gateway/apply` encerra o processo gerenciado, inicia o bind salvo
   e retorna `{ "status": ..., "settings": ... }`.
 
-Quando `host` é `0.0.0.0`, o cliente deve usar o IP Tailscale real da máquina,
-por exemplo `http://100.x.y.z:11435`; `0.0.0.0` é apenas endereço de escuta.
+Quando `host` é `0.0.0.0`, ele é apenas o endereço de escuta. O cliente usa o
+`tailscale_ip` persistido, por exemplo `http://100.87.71.48:11435`. Endereços
+IPv6 recebem colchetes na URL, como `http://[fd7a:115c:a1e0::1]:11435`.
 
 - `POST /api/generate` mantém o formato Ollama e injeta o perfil salvo do modelo.
 - `POST /api/chat` mantém o formato nativo de chat do Ollama e injeta o perfil salvo do modelo.
@@ -62,5 +68,7 @@ Thinking recebido durante streaming é exposto como `reasoning_content`; quando 
 perfil define `think=false`, nenhum delta de thinking é emitido.
 
 Clientes Ollama podem apontar `OLLAMA_HOST` para a gateway, por exemplo
-`http://127.0.0.1:11435` ou `http://<IP-TAILSCALE>:11435`. Isso faz `ollama run`
-usar `/api/chat` da gateway, em vez de acessar diretamente a porta `11434`.
+`http://127.0.0.1:11435` ou `http://100.87.71.48:11435`. A aba **Conectar**
+monta o comando com o IP persistido e bloqueia a cópia enquanto ele não estiver
+salvo. Isso faz `ollama run` usar `/api/chat` da gateway, em vez de acessar
+diretamente a porta `11434`.

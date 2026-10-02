@@ -13,6 +13,10 @@ class GatewaySettingsUpdate(BaseModel):
     host: str
 
 
+class GatewayTailscaleIpUpdate(BaseModel):
+    tailscale_ip: str
+
+
 def configured_gateway_host() -> str:
     try:
         return GatewaySettingsService(
@@ -51,6 +55,18 @@ def update_gateway_settings(patch: GatewaySettingsUpdate) -> dict[str, object]:
     manager = get_gateway_manager()
     try:
         return _settings_service().update(patch.host, effective_host=manager.host).to_dict()
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
+
+
+@router.put("/tailscale-ip")
+def update_gateway_tailscale_ip(patch: GatewayTailscaleIpUpdate) -> dict[str, object]:
+    manager = get_gateway_manager()
+    try:
+        return _settings_service().update_tailscale_ip(
+            patch.tailscale_ip,
+            effective_host=manager.host,
+        ).to_dict()
     except ValueError as error:
         raise HTTPException(status_code=422, detail=str(error)) from error
 

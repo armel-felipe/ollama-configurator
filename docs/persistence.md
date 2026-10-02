@@ -10,6 +10,29 @@ faz `fsync` e substitui o arquivo final atomicamente.
 Os arquivos da aplicação e os dados do usuário são separados. A localização
 é abstraída por `backend.persistence.paths.user_data_dir`.
 
+O arquivo persistido é `config.json`, nestes diretórios de dados:
+
+- macOS: `~/Library/Application Support/Ollama Configurator/config.json`;
+- Windows: `%LOCALAPPDATA%\Ollama Configurator\config.json`.
+
+As configurações de conexão ficam na seção `gateway`. `host` é o endereço de
+bind do processo (`127.0.0.1` ou `0.0.0.0`) e `tailscale_ip` é o endereço que
+os clientes usam quando o bind é de rede:
+
+```json
+{
+  "gateway": {
+    "host": "0.0.0.0",
+    "tailscale_ip": "100.87.71.48"
+  }
+}
+```
+
+Os campos são independentes: salvar o bind preserva `tailscale_ip`, salvar o
+IP preserva `host`, e alternar temporariamente para o bind local não apaga o
+IP salvo. A restauração global remove a seção `gateway` e volta ao bind local
+sem IP Tailscale configurado.
+
 As configurações por modelo ficam no campo `models`, indexadas pelo identificador
 completo do modelo, incluindo tags como `qwen:latest`. A aplicação só envia
 parâmetros explicitamente personalizados para o Ollama; parâmetros em Default

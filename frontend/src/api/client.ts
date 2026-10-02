@@ -122,6 +122,7 @@ export type GatewayStatus = {
 export type GatewaySettings = {
   host: string;
   effective_host: string;
+  tailscale_ip?: string | null;
   port: number;
   pending_restart: boolean;
   options: string[];
@@ -177,6 +178,19 @@ export async function saveGatewaySettings(host: string): Promise<GatewaySettings
   if (!response.ok) {
     const body = await response.json().catch(() => null) as { detail?: string } | null;
     throw new Error(body?.detail ?? "Não foi possível salvar o acesso do gateway");
+  }
+  return response.json() as Promise<GatewaySettings>;
+}
+
+export async function saveGatewayTailscaleIp(tailscaleIp: string): Promise<GatewaySettings> {
+  const response = await fetch("/api/gateway/tailscale-ip", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ tailscale_ip: tailscaleIp }),
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => null) as { detail?: string } | null;
+    throw new Error(body?.detail ?? "Não foi possível salvar o IP Tailscale");
   }
   return response.json() as Promise<GatewaySettings>;
 }

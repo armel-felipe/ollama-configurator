@@ -14,6 +14,7 @@ import {
   startGateway,
   stopGateway,
   saveGatewaySettings,
+  saveGatewayTailscaleIp,
   applyGatewaySettings,
   getServerSettings,
   resetServerSettings,
@@ -135,6 +136,8 @@ export function DiagnosticsPage({ loadDiagnostics }: Props) {
         selectedModel={selectedModel}
         gateway={gatewayView.status}
         onSelectModel={selectModel}
+        loadGatewaySettings={getGatewaySettings}
+        saveTailscaleIp={saveGatewayTailscaleIp}
       />
       <section className="system-summary" id="diagnostics-section" aria-labelledby="system-heading">
         <div>

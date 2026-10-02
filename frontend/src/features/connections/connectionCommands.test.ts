@@ -3,8 +3,19 @@ import {
   buildConnectionCommand,
   connectionClients,
   defaultShellForUserAgent,
+  gatewayUrlForIp,
   type ConnectionClientId,
 } from "./connectionCommands";
+
+describe("gatewayUrlForIp", () => {
+  it("formats IPv4 without brackets", () => {
+    expect(gatewayUrlForIp("100.87.71.48", 11435)).toBe("http://100.87.71.48:11435");
+  });
+
+  it("brackets IPv6 for an HTTP URL", () => {
+    expect(gatewayUrlForIp("fd7a:115c:a1e0::1", 11435)).toBe("http://[fd7a:115c:a1e0::1]:11435");
+  });
+});
 
 describe("connection command catalog", () => {
   it.each([
