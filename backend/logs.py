@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import queue
 from collections import deque
 from collections.abc import Iterator
@@ -46,6 +47,7 @@ class LogStore:
             self._events.append(event)
             for subscriber in self._subscribers:
                 subscriber.put(event)
+        _emit_process_log(event)
         return event
 
     def snapshot(self, service: str | None = None) -> list[LogEvent]:
@@ -69,6 +71,12 @@ class LogStore:
 
 
 LOG_STORE = LogStore()
+
+
+def _emit_process_log(event: LogEvent) -> None:
+    logging.getLogger("ollama-configurator.events").info(
+        "%s", json.dumps(event.to_dict(), ensure_ascii=False)
+    )
 
 
 def encode_sse(event: LogEvent) -> str:

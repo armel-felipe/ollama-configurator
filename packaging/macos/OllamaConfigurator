@@ -2,6 +2,24 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-export OLLAMA_CONFIGURATOR_FRONTEND_DIR="$ROOT/Resources/frontend"
+BACKEND="$ROOT/Resources/backend/OllamaConfiguratorBackend/OllamaConfiguratorBackend"
+FRONTEND="$ROOT/Resources/frontend"
+
+if [[ "${OLLAMA_CONFIGURATOR_TERMINAL_CHILD:-}" != "1" && -z "${TERM_PROGRAM:-}" ]]; then
+  /usr/bin/osascript - "$BACKEND" "$FRONTEND" <<'APPLESCRIPT'
+on run argv
+  set backendPath to item 1 of argv
+  set frontendPath to item 2 of argv
+  set commandText to "export OLLAMA_CONFIGURATOR_FRONTEND_DIR=" & quoted form of frontendPath & "; export OLLAMA_CONFIGURATOR_OPEN_BROWSER=1; export OLLAMA_CONFIGURATOR_TERMINAL_CHILD=1; exec " & quoted form of backendPath
+  tell application "Terminal"
+    activate
+    do script commandText
+  end tell
+end run
+APPLESCRIPT
+  exit 0
+fi
+
+export OLLAMA_CONFIGURATOR_FRONTEND_DIR="$FRONTEND"
 export OLLAMA_CONFIGURATOR_OPEN_BROWSER=1
-exec "$ROOT/Resources/backend/OllamaConfiguratorBackend/OllamaConfiguratorBackend"
+exec "$BACKEND"

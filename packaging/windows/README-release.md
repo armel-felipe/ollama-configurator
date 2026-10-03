@@ -1,4 +1,4 @@
-# Ollama Configurator v0.1.14 — Windows x64
+# Ollama Configurator v0.1.15 — Windows x64
 
 ## Português
 

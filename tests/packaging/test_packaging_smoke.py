@@ -28,7 +28,7 @@ def test_backend_packaging_dry_run_is_local_and_versioned(tmp_path: Path) -> Non
     assert manifest["artifact"] == "OllamaConfiguratorBackend"
     assert manifest["bind_host"] == "127.0.0.1"
     assert manifest["ports"] == {"api": 8787, "gateway": 11435}
-    assert manifest["version"] == "0.1.14"
+    assert manifest["version"] == "0.1.15"
 
 
 def test_backend_packaging_uses_the_current_python_for_pyinstaller() -> None:
@@ -47,7 +47,7 @@ def test_frontend_packaging_dry_run_is_versioned(tmp_path: Path) -> None:
 
     assert manifest["artifact"] == "OllamaConfiguratorFrontend"
     assert manifest["source"] == "frontend/dist"
-    assert manifest["version"] == "0.1.14"
+    assert manifest["version"] == "0.1.15"
 
 
 def test_frontend_package_excludes_macos_metadata(tmp_path: Path) -> None:
@@ -126,3 +126,11 @@ def test_macos_bundle_declares_its_launcher_executable() -> None:
         info = plistlib.load(stream)
 
     assert info["CFBundleExecutable"] == "OllamaConfigurator"
+
+
+def test_macos_launcher_opens_a_visible_server_terminal() -> None:
+    launcher = (ROOT / "packaging/macos/OllamaConfigurator").read_text(encoding="utf-8")
+
+    assert "tell application \"Terminal\"" in launcher
+    assert "OLLAMA_CONFIGURATOR_TERMINAL_CHILD" in launcher
+    assert "OLLAMA_CONFIGURATOR_OPEN_BROWSER=1" in launcher

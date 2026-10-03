@@ -1,8 +1,8 @@
-# Ollama Configurator v0.1.14 — macOS Apple Silicon (arm64)
+# Ollama Configurator v0.1.15 — macOS Apple Silicon (arm64)
 
 ## Português
 
-Pelo Finder, mova `Ollama Configurator.app` para Aplicativos e abra normalmente. Pelo Terminal, sem privilégios de administrador:
+Pelo Finder, mova `Ollama Configurator.app` para Aplicativos e abra normalmente. O pacote abre uma janela do Terminal com os logs do servidor e o navegador da aplicação. Pelo Terminal, sem privilégios de administrador:
 
 ```bash
 mkdir -p "$HOME/Applications"
@@ -14,7 +14,7 @@ Para executar diretamente da pasta extraída: `open "Ollama Configurator.app"`. 
 
 ## English
 
-In Finder, move `Ollama Configurator.app` to Applications and open it normally. From Terminal, without administrator privileges:
+In Finder, move `Ollama Configurator.app` to Applications and open it normally. The package opens a Terminal window with the server logs and the application browser. From Terminal, without administrator privileges:
 
 ```bash
 mkdir -p "$HOME/Applications"

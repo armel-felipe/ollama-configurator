@@ -2,6 +2,7 @@ import os
 import signal
 import subprocess
 import sys
+import threading
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -55,9 +56,21 @@ def _spawn(command: list[str], cwd: Path) -> GatewayProcess:
     return subprocess.Popen(
         command,
         cwd=str(cwd),
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
     )
+
+
+def _forward_process_output(process: GatewayProcess, log_store: LogStore) -> None:
+    stream = getattr(process, "stdout", None)
+    if stream is None or not hasattr(stream, "read"):
+        return
+    for line in stream:
+        message = line.strip()
+        if message:
+            log_store.emit("gateway", "info", message)
 
 
 def _health_check(host: str, port: int) -> bool:
@@ -183,6 +196,12 @@ class GatewayProcessManager:
             try:
                 self._process = self._process_factory(command, self.root)
                 self._last_error = None
+                threading.Thread(
+                    target=_forward_process_output,
+                    args=(self._process, self._log_store),
+                    name="ollama-configurator-gateway-logs",
+                    daemon=True,
+                ).start()
                 self._log_store.emit(
                     "gateway",
                     "info",

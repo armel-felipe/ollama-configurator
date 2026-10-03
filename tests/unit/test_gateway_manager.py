@@ -1,7 +1,13 @@
 from pathlib import Path
+from io import StringIO
 
 import backend.gateway_manager as gateway_manager_module
-from backend.gateway_manager import GatewayProcessManager, _external_process, _health_check
+from backend.gateway_manager import (
+    GatewayProcessManager,
+    _external_process,
+    _forward_process_output,
+    _health_check,
+)
 
 
 class FakeProcess:
@@ -23,6 +29,20 @@ class FakeProcess:
 
     def kill(self) -> None:
         self.return_code = -9
+
+
+def test_gateway_process_output_is_forwarded_to_application_logs() -> None:
+    process = FakeProcess()
+    process.stdout = StringIO("INFO gateway ready\nWARNING port detail\n")
+    from backend.logs import LogStore
+
+    store = LogStore()
+
+    _forward_process_output(process, store)
+
+    events = store.snapshot()
+    assert [event.message for event in events] == ["INFO gateway ready", "WARNING port detail"]
+    assert all(event.service == "gateway" for event in events)
 
 
 def test_start_launches_managed_gateway_on_default_port(tmp_path: Path) -> None:
