@@ -1,8 +1,10 @@
-# Ollama Configurator v0.1.13 — Windows x64
+# Ollama Configurator v0.1.14 — Windows x64
 
 ## Português
 
-Extraia todo o ZIP e abra o PowerShell nessa pasta. Execute:
+Extraia todo o ZIP e execute `install.bat` para instalar. Depois execute `run.bat` para iniciar a aplicação. Esses arquivos chamam os scripts PowerShell incluídos com a política de execução necessária.
+
+Também é possível abrir o PowerShell nessa pasta e executar:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
@@ -10,7 +12,7 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\run.ps1
 ```
 
-A instalação usa `%LOCALAPPDATA%\Ollama Configurator`. Para remover:
+A instalação usa `%LOCALAPPDATA%\Ollama Configurator`. Para remover, execute `uninstall.bat` ou:
 
 ```powershell
 .\uninstall.ps1
@@ -20,7 +22,9 @@ A interface usa a porta 8787 e o gateway Ollama usa a porta 11435. Uma instânci
 
 ## English
 
-Extract the entire ZIP and open PowerShell in that folder. Run:
+Extract the entire ZIP and run `install.bat` to install. Then run `run.bat` to start the application. These files call the included PowerShell scripts with the required execution policy.
+
+You can also open PowerShell in the extracted folder and run:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
@@ -28,7 +32,7 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\run.ps1
 ```
 
-The default install path is `%LOCALAPPDATA%\Ollama Configurator`. To remove it:
+The default install path is `%LOCALAPPDATA%\Ollama Configurator`. To remove it, run `uninstall.bat` or:
 
 ```powershell
 .\uninstall.ps1

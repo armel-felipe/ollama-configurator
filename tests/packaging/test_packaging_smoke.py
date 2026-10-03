@@ -28,7 +28,7 @@ def test_backend_packaging_dry_run_is_local_and_versioned(tmp_path: Path) -> Non
     assert manifest["artifact"] == "OllamaConfiguratorBackend"
     assert manifest["bind_host"] == "127.0.0.1"
     assert manifest["ports"] == {"api": 8787, "gateway": 11435}
-    assert manifest["version"] == "0.1.13"
+    assert manifest["version"] == "0.1.14"
 
 
 def test_backend_packaging_uses_the_current_python_for_pyinstaller() -> None:
@@ -47,7 +47,7 @@ def test_frontend_packaging_dry_run_is_versioned(tmp_path: Path) -> None:
 
     assert manifest["artifact"] == "OllamaConfiguratorFrontend"
     assert manifest["source"] == "frontend/dist"
-    assert manifest["version"] == "0.1.13"
+    assert manifest["version"] == "0.1.14"
 
 
 def test_frontend_package_excludes_macos_metadata(tmp_path: Path) -> None:
@@ -92,6 +92,9 @@ def test_release_files_are_present() -> None:
         "backend/__main__.py",
         "packaging/macos/build-app.sh",
         "packaging/windows/build-installer.ps1",
+        "packaging/windows/install.bat",
+        "packaging/windows/run.bat",
+        "packaging/windows/uninstall.bat",
         "packaging/windows/run.ps1",
         "docs/packaging.md",
         "docs/uninstall.md",
@@ -102,6 +105,20 @@ def test_release_files_are_present() -> None:
     ]
 
     assert all((ROOT / path).exists() for path in expected)
+
+
+def test_windows_batch_launchers_delegate_to_powershell_scripts() -> None:
+    expected = {
+        "install.bat": "install.ps1",
+        "run.bat": "run.ps1",
+        "uninstall.bat": "uninstall.ps1",
+    }
+
+    for batch_name, script_name in expected.items():
+        content = (ROOT / "packaging/windows" / batch_name).read_text(encoding="utf-8")
+        assert "powershell.exe" in content.lower()
+        assert script_name in content
+        assert "%~dp0" in content
 
 
 def test_macos_bundle_declares_its_launcher_executable() -> None:
