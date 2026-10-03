@@ -1,7 +1,5 @@
 from pathlib import Path
 
-import backend.gateway_settings as gateway_settings_module
-
 import pytest
 
 from backend.gateway_settings import (
@@ -54,9 +52,8 @@ def test_invalid_bind_host_is_rejected(tmp_path: Path) -> None:
     ],
 )
 def test_tailscale_ip_is_validated_normalized_and_persisted(
-    tmp_path: Path, value: str, expected: str, monkeypatch
+    tmp_path: Path, value: str, expected: str
 ) -> None:
-    monkeypatch.setattr(gateway_settings_module, "local_tailscale_ips", lambda: set())
     gateway_service = service(tmp_path)
     gateway_service.update("0.0.0.0", effective_host=DEFAULT_GATEWAY_HOST)
 
@@ -74,9 +71,8 @@ def test_tailscale_ip_is_validated_normalized_and_persisted(
     "value", ["", "mac.tailnet.ts.net", "http://100.87.71.48", "100.87.71.48:11435"]
 )
 def test_invalid_tailscale_ip_is_rejected_without_overwriting_saved_value(
-    tmp_path: Path, value: str, monkeypatch
+    tmp_path: Path, value: str
 ) -> None:
-    monkeypatch.setattr(gateway_settings_module, "local_tailscale_ips", lambda: set())
     gateway_service = service(tmp_path)
     gateway_service.update_tailscale_ip("100.64.0.10", effective_host=DEFAULT_GATEWAY_HOST)
 
@@ -86,23 +82,22 @@ def test_invalid_tailscale_ip_is_rejected_without_overwriting_saved_value(
     assert gateway_service.get(DEFAULT_GATEWAY_HOST).tailscale_ip == "100.64.0.10"
 
 
-def test_tailscale_ip_must_match_a_local_tailscale_address_when_detected(
-    tmp_path: Path, monkeypatch
-) -> None:
-    monkeypatch.setattr(
-        gateway_settings_module,
-        "local_tailscale_ips",
-        lambda: {"100.87.71.48"},
-    )
-
-    with pytest.raises(ValueError, match="esta máquina"):
+def test_non_tailscale_ip_is_rejected(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="rede Tailscale"):
         service(tmp_path).update_tailscale_ip(
-            "100.64.0.23", effective_host=DEFAULT_GATEWAY_HOST
+            "192.168.18.81", effective_host=DEFAULT_GATEWAY_HOST
         )
 
 
-def test_updating_bind_preserves_saved_tailscale_ip(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.setattr(gateway_settings_module, "local_tailscale_ips", lambda: set())
+def test_tailscale_ip_can_target_a_remote_tailscale_device(tmp_path: Path) -> None:
+    state = service(tmp_path).update_tailscale_ip(
+        "100.71.145.119", effective_host=DEFAULT_GATEWAY_HOST
+    )
+
+    assert state.tailscale_ip == "100.71.145.119"
+
+
+def test_updating_bind_preserves_saved_tailscale_ip(tmp_path: Path) -> None:
     gateway_service = service(tmp_path)
     gateway_service.update_tailscale_ip("100.64.0.10", effective_host=DEFAULT_GATEWAY_HOST)
 

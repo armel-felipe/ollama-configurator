@@ -253,7 +253,7 @@ wheels = [
 
 [[package]]
 name = "ollama-configurator"
-version = "0.1.12"
+version = "0.1.13"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi" },
