@@ -12,4 +12,4 @@ async def test_health_endpoint_reports_running_application() -> None:
 
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
-    assert response.json()["version"] == "0.1.16"
+    assert response.json()["version"] == "0.1.17"

@@ -1,4 +1,4 @@
-# Ollama Configurator v0.1.16 — macOS/Linux ZIP
+# Ollama Configurator v0.1.17 — macOS/Linux ZIP
 
 ## Português
 

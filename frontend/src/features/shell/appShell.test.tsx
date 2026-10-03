@@ -15,9 +15,9 @@ describe("AppShell", () => {
       </ThemeProvider>,
     );
 
-    expect(screen.getByText("Ollama Configurator v0.1.16")).toBeInTheDocument();
+    expect(screen.getByText("Ollama Configurator v0.1.17")).toBeInTheDocument();
     const footer = screen.getByTestId("sidebar-footer");
-    expect(footer.firstElementChild).toHaveTextContent("Ollama Configurator v0.1.16");
+    expect(footer.firstElementChild).toHaveTextContent("Ollama Configurator v0.1.17");
     expect(footer.lastElementChild).toHaveTextContent("Gateway 11435");
   });
 

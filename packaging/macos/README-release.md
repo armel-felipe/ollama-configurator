@@ -1,4 +1,4 @@
-# Ollama Configurator v0.1.16 — macOS Apple Silicon (arm64)
+# Ollama Configurator v0.1.17 — macOS Apple Silicon (arm64)
 
 ## Português
 

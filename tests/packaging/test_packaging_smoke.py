@@ -28,7 +28,7 @@ def test_backend_packaging_dry_run_is_local_and_versioned(tmp_path: Path) -> Non
     assert manifest["artifact"] == "OllamaConfiguratorBackend"
     assert manifest["bind_host"] == "127.0.0.1"
     assert manifest["ports"] == {"api": 8787, "gateway": 11435}
-    assert manifest["version"] == "0.1.16"
+    assert manifest["version"] == "0.1.17"
 
 
 def test_backend_packaging_uses_the_current_python_for_pyinstaller() -> None:
@@ -47,7 +47,7 @@ def test_frontend_packaging_dry_run_is_versioned(tmp_path: Path) -> None:
 
     assert manifest["artifact"] == "OllamaConfiguratorFrontend"
     assert manifest["source"] == "frontend/dist"
-    assert manifest["version"] == "0.1.16"
+    assert manifest["version"] == "0.1.17"
 
 
 def test_frontend_package_excludes_macos_metadata(tmp_path: Path) -> None:
@@ -154,6 +154,13 @@ def test_posix_release_scripts_are_shared_by_macos_and_linux() -> None:
         assert "#!/usr/bin/env bash" in content
         assert "uname -s" in content
     assert "SCRIPT_DIR=" in (ROOT / "packaging/posix/install.sh").read_text(encoding="utf-8")
+
+
+def test_macos_installer_clears_download_quarantine_from_installed_bundle() -> None:
+    content = (ROOT / "packaging/posix/install.sh").read_text(encoding="utf-8")
+
+    assert 'uname -s' in content
+    assert 'xattr -dr com.apple.quarantine "$INSTALL_DIR"' in content
 
 
 def test_posix_builder_creates_zip_without_dmg_or_windows_launchers() -> None:

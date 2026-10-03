@@ -6,7 +6,7 @@ from backend.version import read_version_file
 
 
 def test_version_file_contains_the_next_release() -> None:
-    assert read_version_file(Path("VERSION")) == "0.1.16"
+    assert read_version_file(Path("VERSION")) == "0.1.17"
 
 
 def test_version_reader_rejects_blank_or_multiline_values(tmp_path: Path) -> None:
