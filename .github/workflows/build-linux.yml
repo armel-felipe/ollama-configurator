@@ -1,4 +1,4 @@
-name: Build macOS
+name: Build Linux
 
 permissions:
   contents: write
@@ -10,7 +10,7 @@ on:
 
 jobs:
   package:
-    runs-on: macos-14
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v10.2.0
@@ -27,20 +27,20 @@ jobs:
       - run: npm run build --prefix frontend
       - run: bash packaging/posix/build-installer.sh
         env:
-          PACKAGE_PLATFORM: Darwin
-          PACKAGE_ARCH: arm64
+          PACKAGE_PLATFORM: Linux
+          PACKAGE_ARCH: x86_64
       - name: Verify portable archive
         run: |
-          unzip -Z1 dist/posix/OllamaConfigurator-macOS-arm64.zip > "$RUNNER_TEMP/macos-zip-list.txt"
-          grep -Fx 'README.md' "$RUNNER_TEMP/macos-zip-list.txt"
-          grep -Fx 'install.sh' "$RUNNER_TEMP/macos-zip-list.txt"
-          grep -Fx 'run.sh' "$RUNNER_TEMP/macos-zip-list.txt"
-          grep -Fx 'uninstall.sh' "$RUNNER_TEMP/macos-zip-list.txt"
-          grep -Fx 'backend/OllamaConfiguratorBackend/OllamaConfiguratorBackend' "$RUNNER_TEMP/macos-zip-list.txt"
-          ! grep -E '\.(dmg|bat|ps1)$' "$RUNNER_TEMP/macos-zip-list.txt"
+          unzip -Z1 dist/posix/OllamaConfigurator-Linux-x86_64.zip > "$RUNNER_TEMP/linux-zip-list.txt"
+          grep -Fx 'README.md' "$RUNNER_TEMP/linux-zip-list.txt"
+          grep -Fx 'install.sh' "$RUNNER_TEMP/linux-zip-list.txt"
+          grep -Fx 'run.sh' "$RUNNER_TEMP/linux-zip-list.txt"
+          grep -Fx 'uninstall.sh' "$RUNNER_TEMP/linux-zip-list.txt"
+          grep -Fx 'backend/OllamaConfiguratorBackend/OllamaConfiguratorBackend' "$RUNNER_TEMP/linux-zip-list.txt"
+          ! grep -E '\.(dmg|bat|ps1)$' "$RUNNER_TEMP/linux-zip-list.txt"
       - uses: actions/upload-artifact@v7
         with:
-          name: OllamaConfigurator-macOS-arm64
+          name: OllamaConfigurator-Linux-x86_64
           path: dist/posix/
       - name: Publish release assets
         if: startsWith(github.ref, 'refs/tags/')
@@ -52,6 +52,6 @@ jobs:
           if ! gh release view "$tag" --repo "$repo" >/dev/null 2>&1; then
             gh release create "$tag" --repo "$repo" --title "Ollama Configurator $tag" --generate-notes || true
           fi
-          zip="dist/posix/OllamaConfigurator-macOS-arm64.zip"
-          (cd dist/posix && shasum -a 256 OllamaConfigurator-macOS-arm64.zip > checksums-macOS.txt)
-          gh release upload "$tag" "$zip" dist/posix/checksums-macOS.txt --repo "$repo" --clobber
+          zip="dist/posix/OllamaConfigurator-Linux-x86_64.zip"
+          (cd dist/posix && sha256sum OllamaConfigurator-Linux-x86_64.zip > checksums-Linux.txt)
+          gh release upload "$tag" "$zip" dist/posix/checksums-Linux.txt --repo "$repo" --clobber

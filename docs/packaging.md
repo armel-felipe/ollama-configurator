@@ -23,7 +23,7 @@ O build real exige PyInstaller instalado no ambiente de release:
 
 ```bash
 python -m pip install pyinstaller
-bash packaging/macos/build-app.sh
+bash packaging/posix/build-installer.sh
 ```
 
 No Windows, execute PowerShell como usuário normal:
@@ -33,10 +33,9 @@ python -m pip install pyinstaller
 powershell -ExecutionPolicy Bypass -File packaging/windows/build-installer.ps1
 ```
 
-Os workflows do GitHub Actions repetem esses passos em runners nativos. O
-artefato macOS é um `.app` e, quando `hdiutil` está disponível, um `.dmg`; o
-Windows produz um pacote portátil `.zip` com scripts de instalação. Um
-instalador `.exe` assinado ainda é uma etapa de publicação posterior.
+Os workflows do GitHub Actions repetem esses passos em runners nativos. macOS
+e Linux produzem ZIPs portáteis com os mesmos scripts `.sh`; Windows produz um
+ZIP com scripts `.bat` e PowerShell. O DMG não faz parte dos releases.
 
 Em todos os casos, o serviço permanece local-only por padrão (`127.0.0.1`),
 com o gateway em `11435`. A exposição via Tailscale é uma decisão explícita

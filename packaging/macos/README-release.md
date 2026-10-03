@@ -1,25 +1,25 @@
-# Ollama Configurator v0.1.15 — macOS Apple Silicon (arm64)
+# Ollama Configurator v0.1.16 — macOS Apple Silicon (arm64)
 
 ## Português
 
-Pelo Finder, mova `Ollama Configurator.app` para Aplicativos e abra normalmente. O pacote abre uma janela do Terminal com os logs do servidor e o navegador da aplicação. Pelo Terminal, sem privilégios de administrador:
+Extraia o ZIP, abra o Terminal nessa pasta e execute:
 
 ```bash
-mkdir -p "$HOME/Applications"
-ditto "Ollama Configurator.app" "$HOME/Applications/Ollama Configurator.app"
-open "$HOME/Applications/Ollama Configurator.app"
+chmod +x install.sh run.sh uninstall.sh
+./install.sh
+./run.sh
 ```
 
-Para executar diretamente da pasta extraída: `open "Ollama Configurator.app"`. O DMG continua disponível como opção gráfica. Este pacote é exclusivo para Apple Silicon.
+O `run.sh` mantém os logs do servidor visíveis no Terminal e abre o navegador da aplicação. Para remover: `./uninstall.sh`. As configurações e modelos do Ollama não são alterados.
 
 ## English
 
-In Finder, move `Ollama Configurator.app` to Applications and open it normally. The package opens a Terminal window with the server logs and the application browser. From Terminal, without administrator privileges:
+Extract the ZIP, open a Terminal in that folder, and run:
 
 ```bash
-mkdir -p "$HOME/Applications"
-ditto "Ollama Configurator.app" "$HOME/Applications/Ollama Configurator.app"
-open "$HOME/Applications/Ollama Configurator.app"
+chmod +x install.sh run.sh uninstall.sh
+./install.sh
+./run.sh
 ```
 
-To run directly from the extracted folder: `open "Ollama Configurator.app"`. The DMG remains available as the graphical option. This package is for Apple Silicon only.
+`run.sh` keeps the server logs visible in the Terminal and opens the application browser. To remove it: `./uninstall.sh`. Ollama settings and models are not changed.

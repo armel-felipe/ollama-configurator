@@ -28,7 +28,7 @@ def test_backend_packaging_dry_run_is_local_and_versioned(tmp_path: Path) -> Non
     assert manifest["artifact"] == "OllamaConfiguratorBackend"
     assert manifest["bind_host"] == "127.0.0.1"
     assert manifest["ports"] == {"api": 8787, "gateway": 11435}
-    assert manifest["version"] == "0.1.15"
+    assert manifest["version"] == "0.1.16"
 
 
 def test_backend_packaging_uses_the_current_python_for_pyinstaller() -> None:
@@ -47,7 +47,7 @@ def test_frontend_packaging_dry_run_is_versioned(tmp_path: Path) -> None:
 
     assert manifest["artifact"] == "OllamaConfiguratorFrontend"
     assert manifest["source"] == "frontend/dist"
-    assert manifest["version"] == "0.1.15"
+    assert manifest["version"] == "0.1.16"
 
 
 def test_frontend_package_excludes_macos_metadata(tmp_path: Path) -> None:
@@ -92,6 +92,10 @@ def test_release_files_are_present() -> None:
         "backend/__main__.py",
         "packaging/macos/build-app.sh",
         "packaging/windows/build-installer.ps1",
+        "packaging/posix/build-installer.sh",
+        "packaging/posix/install.sh",
+        "packaging/posix/run.sh",
+        "packaging/posix/uninstall.sh",
         "packaging/windows/install.bat",
         "packaging/windows/run.bat",
         "packaging/windows/uninstall.bat",
@@ -101,6 +105,7 @@ def test_release_files_are_present() -> None:
         "docs/release-process.md",
         ".github/workflows/test.yml",
         ".github/workflows/build-macos.yml",
+        ".github/workflows/build-linux.yml",
         ".github/workflows/build-windows.yml",
     ]
 
@@ -134,3 +139,45 @@ def test_macos_launcher_opens_a_visible_server_terminal() -> None:
     assert "tell application \"Terminal\"" in launcher
     assert "OLLAMA_CONFIGURATOR_TERMINAL_CHILD" in launcher
     assert "OLLAMA_CONFIGURATOR_OPEN_BROWSER=1" in launcher
+
+
+def test_posix_release_scripts_are_shared_by_macos_and_linux() -> None:
+    scripts = {
+        "install.sh": "install",
+        "run.sh": "run",
+        "uninstall.sh": "uninstall",
+    }
+
+    for filename in scripts:
+        content = (ROOT / "packaging/posix" / filename).read_text(encoding="utf-8")
+        assert "Ollama Configurator" in content
+        assert "#!/usr/bin/env bash" in content
+        assert "uname -s" in content
+    assert "SCRIPT_DIR=" in (ROOT / "packaging/posix/install.sh").read_text(encoding="utf-8")
+
+
+def test_posix_builder_creates_zip_without_dmg_or_windows_launchers() -> None:
+    content = (ROOT / "packaging/posix/build-installer.sh").read_text(encoding="utf-8")
+
+    assert "OllamaConfigurator-" in content
+    assert ".zip" in content
+    assert "install.sh" in content
+    assert "run.sh" in content
+    assert "uninstall.sh" in content
+    assert ".dmg" not in content
+    assert ".bat" not in content
+    assert "COPYFILE_DISABLE" in content
+
+
+def test_release_workflows_keep_windows_and_publish_posix_zip_assets() -> None:
+    macos_workflow = (ROOT / ".github/workflows/build-macos.yml").read_text(encoding="utf-8")
+    linux_workflow = (ROOT / ".github/workflows/build-linux.yml").read_text(encoding="utf-8")
+    windows_workflow = (ROOT / ".github/workflows/build-windows.yml").read_text(encoding="utf-8")
+
+    assert "packaging/posix/build-installer.sh" in macos_workflow
+    assert "OllamaConfigurator-macOS-arm64.zip" in macos_workflow
+    assert ".dmg" not in macos_workflow
+    assert "runs-on: ubuntu-latest" in linux_workflow
+    assert "OllamaConfigurator-Linux-x86_64.zip" in linux_workflow
+    assert "checksums-Linux.txt" in linux_workflow
+    assert "install.bat" in windows_workflow
