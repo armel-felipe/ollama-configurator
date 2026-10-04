@@ -69,7 +69,13 @@ def _owned(process: psutil.Process) -> bool:
     try:
         if process.pid == os.getpid() or process.username() != psutil.Process().username():
             return False
-        return is_configurator(process.exe(), process.cmdline(), process.cwd())
+        command = process.cmdline()
+        executable = process.exe()
+        # macOS may hide exe() for an app launched from Finder while still
+        # exposing the real executable path as argv[0].
+        if not executable and command:
+            executable = command[0]
+        return is_configurator(executable, command, process.cwd())
     except (psutil.Error, OSError):
         return False
 

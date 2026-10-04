@@ -34,6 +34,28 @@ def test_packaged_identity_rejects_gateway_and_unrelated_executable():
         ["OllamaConfiguratorBackend"],
         None,
     )
+
+
+def test_owned_packaged_process_uses_command_line_when_macos_hides_executable():
+    class Process:
+        pid = 4242
+
+        def username(self):
+            return startup.psutil.Process().username()
+
+        def exe(self):
+            return ""
+
+        def cmdline(self):
+            return [
+                "/Applications/Ollama Configurator.app/Contents/Resources/backend/"
+                "OllamaConfiguratorBackend/OllamaConfiguratorBackend"
+            ]
+
+        def cwd(self):
+            return "/"
+
+    assert startup._owned(Process())
     assert not startup.is_configurator(
         "/tmp/OllamaConfiguratorBackend", ["OllamaConfiguratorBackend"], None
     )
